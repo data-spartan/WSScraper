@@ -1,0 +1,26 @@
+version: "3.7"
+
+services:
+  neofeed-3-live:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: neofeed-3-live
+    environment:
+      - SWITCH=live
+    network_mode: host
+    volumes:
+      - ./logs:/logs
+      - ./raw_missing:/raw_missing
+
+  neofeed-3-sender:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: neofeed-3-sender
+    environment:
+      - SWITCH=sender
+    network_mode: host
+    volumes:
+      - ./logs:/logs
+

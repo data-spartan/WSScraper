@@ -1,0 +1,15 @@
+data
+*.json
+*.csv
+.env.production
+.env
+venv
+.idea
+errors
+logs/*
+##excluding files in dir but keep dir itself
+!logs/.gitkeep
+raw_missing/*
+!raw_missing/.gitkeep
+__pycache__/
+*.pyc
