@@ -6,10 +6,11 @@ from time import time
 from utils.resolvers import resolve_football
 from dataclasses import dataclass,field
 from typing import Dict,List
-from utils.queue import Queue
+from utils.queue import Queue, ResolvingQueue
 # from scoreboard_generators import *
 from utils import redis_hash
 from utils.log_func import logging_func
+from utils.resolvers import ResolverAdapter
 from utils.scoreboard_generators import generate_football_scoreboard
 
 @dataclass
@@ -17,14 +18,14 @@ class FetchSend:
     redis_result: redis_hash = field(default=None)
     redis_market: redis_hash = field(default=None)
 
-    resolved_queue: Queue = field(default_factory=Queue, repr=False)
+    # resolved_queue: ResolvingQueue = field(default_factory=ResolvingQueue, repr=False)
     
     def __post_init__(self):
         self.resolver=ResolverAdapter(self.redis_result,self.redis_market,self.results_history_list)
         self.playmatrix = getenv('playmatrix_endpoint')
         self.logg = logging_func("sending-data", getenv("sender_logs"))[1]  # get only logger object
         # self.sport_container={"sport":{"Football":[],"Basketball":[]},"source":"neofeed_live_2"}
-
+        self.match_array=[]
 
     def generate_live_fixtures(self,data: List[Dict],results_hash,markets_hash) -> List[Dict]:
         """
@@ -63,35 +64,37 @@ class FetchSend:
 
                     if row['sport'] in ['Soccer', 'Football']:
                         match_data['scoreboard'] = generate_football_scoreboard(row)
-                        match_data["statistics"] = self.resolver.resolve_football(row)
+                        match_data["resolved"] = self.resolver.resolve_football(row)
 
 
-                    if row["event_period"]=="Ended":
+                    if row['event_period'] == "finished":
                         results_hash.delete_key(row['ItemID'])
-                        markets_hash.delete_hash_key(row['ItemID'])
+                        markets_hash.delete_key(row['ItemID'])
 
+                    self.match_array.append(match_data)
 
                 except Exception as e:
                     self.logg.error(f"In generate_live_fixtures. Error {e}; Fixture id: {row['ItemID']}")                
                     continue
-
+        return self.match_data
+    
     def fetch_and_send(self):
         res=self.redis_result.load_results_data()
         mark=self.redis_market.load_markets_data()
-        if mark:
-            for i in res:
-                for j in mark:
-                    """
-                    checking if markets are empty list(if there are no previous markets so we save empty list in redis);if ItemID in markets bcs in previous iteration we
-                    deleted ItemID so it would throw and error otherwise; regarding perf, only checking if first element of markets equals result ItemID;
-                    """
-                    if (j and "ItemID" in j[0]) and (j[0]["ItemID"] == i["ItemID"]):
-                        i["games"]=j
-                        for k in i["games"]:
-                            del k["ItemID"]
-                        break
-                    else:
-                        i["games"]=[]
+        
+        for i in res:
+            for j in mark:
+                """
+                checking if markets are empty list(if there are no previous markets so we save empty list in redis);if ItemID in markets bcs in previous iteration we
+                deleted ItemID so it would throw and error otherwise; regarding perf, only checking if first element of markets equals result ItemID;
+                """
+                if (j and "ItemID" in j[0]) and (j[0]["ItemID"] == i["ItemID"]):
+                    i["games"]=j
+                    for k in i["games"]:
+                        del k["ItemID"]
+                    break
+                else:
+                    i["games"]=[]
 
         self.generate_live_fixtures(res,self.redis_result,self.redis_market)
         # markets_to_send = self.generate_live_fixtures(res)

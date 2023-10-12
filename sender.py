@@ -38,11 +38,9 @@ if __name__ == "__main__":
     while True:
         try:
             fetchsend.fetch_and_send()
-            producer_instance.sender(fetchsend.sport_container)
-            fetchsend.clear_sports_container()
-            # asyncio.run(fetchsend.send_all_markets())
-            # asyncio.run(fetchsend.send_all_resolved_live())
-            #create_list_of_markets(fixture)
+            producer_instance.sender(fetchsend.match_array)
+            fetchsend.match_array.clear()
+            
             sleep(10)
         except KeyboardInterrupt:
             error_message = {
