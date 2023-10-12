@@ -1,4 +1,4 @@
-from utils.redisHash import *
+from utils.redis_hash import *
 from utils.ws_interface import *
 from constants import *
 global random_ids_list

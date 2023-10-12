@@ -1,6 +1,6 @@
 import re
 import time
-from utils.redisHash import *
+from utils.redis_hash import *
 from utils.sports.football import FootballResolver
 
 def resolve_football(row,results_hash,markets_hash):

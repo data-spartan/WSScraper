@@ -9,28 +9,7 @@ scrapoxy_admin_pass_base64 = base64.b64encode(
 getenv("adm_pass_scrapoxy").encode('ascii'))
 
 sports={'Football': '1',
- # 'Ice Hockey': '2',
- # 'Basketball': '3',
- # 'Tennis': '4',
- # 'Volleyball': '5',
- # 'American Football': '6',
- # 'Badminton': '9',
- # 'Baseball': '11',
- # 'Beach Football': '12',
- # 'Beach Volleyball': '14',
- # 'Cricket': '19',
- # 'Darts': '22',
- # 'Formula 1': '25',
- # 'Futsal': '26',
- # 'Handball': '29',
- # 'Rugby Union': '37',
- # 'Table Tennis': '41',
- # 'MMA': '44',
- # 'Counter-Strike: GO': '75',
- # 'Dota 2': '76',
- # 'King of Glory': '158',
- # 'Basketball Shots': '205',
- # 'League of Legends: Wild Rift': '240'
+ 
 }
 
 football_periods_translation = {
@@ -64,3 +43,12 @@ sport_translations = {
 
 # random_ids_list=pd.read_csv(getenv("ids_random_path"),header=None)[0].to_list()
 
+prod_conf = {'bootstrap.servers': "localhost:9092,localhost:9093",
+             'client.id': "neofeed_live_2",
+             "message.max.bytes": 22285880,
+             "queue.buffering.max.messages": 10,
+             "batch.num.messages": 1,
+             "linger.ms": 10,
+             "acks": 1,
+             "debug": "msg",
+             "compression.type": "gzip"}

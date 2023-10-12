@@ -1,6 +1,6 @@
 import threading
 import websocket
-from utils import redisHash
+from utils import redis_hash
 from utils.parser_tools import *
 from utils.retrier import *
 from typing import AnyStr,List,Dict,Any,Callable
