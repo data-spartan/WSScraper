@@ -1,11 +1,11 @@
 import re
 import time
 from dataclasses import dataclass,field
-from utils.redis_hash import *
-from utils.sports.football import FootballResolver
+from redis_db.redis_hash import *
+from resolving.sports.football import FootballResolver
 from os import getenv
 from dotenv import load_dotenv,find_dotenv
-from utils.log_func import *
+from logger.log_func import *
 from utils.queue import Queue, ResolvingQueue
 @dataclass
 class ResolverAdapter:

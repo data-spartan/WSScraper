@@ -1,7 +1,7 @@
 import threading
 import sys
 import websocket
-from utils import redis_hash
+from redis_db import redis_hash
 from utils.parser_tools import *
 from utils.retrier import *
 from typing import AnyStr,List,Dict,Any,Callable
@@ -9,7 +9,7 @@ import orjson
 from dataclasses import dataclass,field
 from time import sleep
 # from constants import random_ids_list,scrapoxy_admin_pass_base64
-from utils.log_func import *
+from logger.log_func import *
 
 @dataclass
 class WebsocketClient:

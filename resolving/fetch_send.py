@@ -6,11 +6,10 @@ from time import time
 # from utils.resolvers import resolve_football
 from dataclasses import dataclass,field
 from typing import Dict,List
-from utils.queue import Queue, ResolvingQueue
 # from scoreboard_generators import *
-from utils import redis_hash
-from utils.log_func import logging_func
-from utils.resolvers import ResolverAdapter
+from redis_db import redis_hash
+from logger.log_func import logging_func
+from resolving.resolvers import ResolverAdapter
 from utils.scoreboard_generators import generate_football_scoreboard
 
 @dataclass
