@@ -1,63 +1,60 @@
-import uvloop
-from time import time,sleep
-#from utils.kafka_producer import send_notification
-from utils.redisHash import *
-from utils.fetch_send import *
-from utils.async_sender import *
+from os import getenv
+from dotenv import load_dotenv,find_dotenv
+from time import time,strftime,localtime
+from time import sleep
+from utils.kafka_producer import send_notification
+from redis_db.redis_hash import RedisHash
+from resolving.fetch_send import FetchSend
+from constants import prod_conf
+from logger.log_func import *
+from kafka_sender.kafka_producer import Producer_
 
 
 
 if __name__ == "__main__":
-    uvloop.install()
-    send=AsyncSender()
+    load_dotenv(find_dotenv(".env.production"))
+    logg = logging_func("sender", getenv("sender_logs"))[1]
+    logg.info("SENDER started...")
 
-    results_hash = RedisHash(db_id=7, key_field='ItemID')
-    markets_hash = RedisHash(db_id=8, key_field='ItemID')
+    results_hash = RedisHash(db_id=getenv("results_redis"), key_field='ItemID')
+    markets_hash = RedisHash(db_id=getenv("markets_redis"), key_field='ItemID')
 
-    logg=logging_func("sender",getenv("sender_logs"))[1] #get only logger object
+    fetchsend = FetchSend(results_hash,markets_hash)
+    producer_instance=Producer_(prod_conf,getenv('kafka_topic'))
 
-    fetch_send=FetchSend(redis_result=results_hash,redis_market=markets_hash)
-    logg.info(f"STARTING neotech_3 live SENDER")
-    # send_notification(
-    #     {
-    #         'source': 'neotech_3 live sender',
-    #         'severity': 'NOTIFICATION',
-    #         'timestamp': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())),
-    #         'message': 'starting'
-    #     }
-    # )
+    send_notification(
+        {
+            'source': 'instant_bet sender',
+            'severity': 'NOTIFICATION',
+            'timestamp': strftime('%Y-%m-%d %H:%M:%S', localtime(time())),
+            'message': 'starting'
+        }
+    )
     while True:
         try:
-            markets,resolved_live = fetch_send.fetch_and_send()
-            asyncio.run(send.send_all_markets(markets))
-
-            """
-            adding condition for resolve_live bcs most of the time this variable is empty. 
-            asyncio.run(send_all_resolved_live(resolved_live)) is called only if resolved_live has resolved games,
-            so we get performance boost of cca 6 %.
-            """
-            asyncio.run(send.send_all_resolved_live(resolved_live)) if resolved_live else None
-            sleep(3)
+            fetchsend.fetch_and_send()
+            producer_instance.sender(fetchsend.fixtures_array)
+            fetchsend.fixtures_array['fixtures'].clear()
+            
+            sleep(10)
         except KeyboardInterrupt:
-            logg.warning(f"neotech_3 live sender closed manually")
-            # error_message = {
-            #     'source': 'neotech_3 live sender',
-            #     'severity': 'WARNING',
-            #     'timestamp': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())),
-            #     'message': "scraper closed manually"
-            # }
-            # send_notification(error_message)
+            error_message = {
+                'source': 'instant_bet sender',
+                'severity': 'WARNING',
+                'timestamp': strftime('%Y-%m-%d %H:%M:%S', localtime(time())),
+                'message': "scraper closed manually"
+            }
+            send_notification(error_message)
             raise
 
         except Exception as e:
-
-            logg.error(f"neotech_3 live sender ERROR: {e}")
-            # error_message = {
-            #     'source': 'neotech_3 live sender',
-            #     'severity': 'ERROR',
-            #     'timestamp': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())),
-            #     'message': str(e)
-            # }
-            # send_notification(error_message)
+            error_message = {
+                'source': 'instant_bet sender',
+                'severity': 'ERROR',
+                'timestamp': strftime('%Y-%m-%d %H:%M:%S', localtime(time())),
+                'message': str(e)
+            }
+            logg.error(f"SENDER ERROR: {e}", exc_info=True)
+            send_notification(error_message)
             raise
 

@@ -3,7 +3,7 @@ import numpy as np
 from os import getenv
 from dotenv import load_dotenv
 from pathlib import Path
-from utils.log_func import *
+from logger.log_func import *
 
 load_dotenv(".env")
 logg=logging_func("random-ids-generator",getenv("sender_logs"))[1] #get only logger object
