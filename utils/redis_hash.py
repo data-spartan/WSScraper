@@ -76,8 +76,8 @@ class RedisHash:
             for key in self.__redis.keys():
                 pipe.get(key)
             result=pipe.execute()
-        result=_list(map(_loads,result))
-        return result if result else _list()
+        result=_list(map(_loads,result)) if result else _list()
+        return result
 
     def load_markets_data(self) -> list:
         """

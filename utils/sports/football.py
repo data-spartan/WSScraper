@@ -34,8 +34,8 @@ class FootballResolver:
     red_cards_comp1: Optional[int] = 0
     red_cards_comp2: Optional[int] = 0
     period: Optional[str] = "1"
-    match_minutes:Optional[str]
-    resolving_queue: ResolvingQueue
+    match_minutes:Optional[str] = 0
+    resolving_queue: ResolvingQueue =ResolvingQueue
 
     def get_data(self) -> list:
         """
@@ -44,7 +44,7 @@ class FootballResolver:
         :return:
         """
         # return list(self.resolving_queue)
-        return self.resolving_queue.return_
+        return self.resolving_queue.return_()
 
     # self.resolving_queue.append_resolved_games(
     #     f"main|Next goal - Current score: {self.competitor_1_old_result}:{self.competitor_2_old_result}|2", "won")

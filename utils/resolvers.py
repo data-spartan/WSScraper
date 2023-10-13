@@ -23,11 +23,11 @@ class ResolverAdapter:
         self.logg = logging_func("resolver_adapter", getenv("sender_logs"))[1]
 
 
-    def resolve_football(self,row,results_hash,markets_hash):
+    def resolve_football(self,row):
         competitor_1_overtime1_result=competitor_2_overtime1_result=competitor_1_overtime2_result = \
         competitor_2_overtime2_result=competitor_1_penalties_result=competitor_2_penalties_result= \
         competitor_1_overtime1_old_result=competitor_2_overtime1_old_result=competitor_1_overtime2_old_result= \
-        competitor_2_overtime2_old_result=competitor_1_penalties_old_result=competitor_2_penalties_old_result=0
+        competitor_2_overtime2_old_result=competitor_1_penalties_old_result=competitor_2_penalties_old_result=None
         try:
             if len(row['event_score'].split("-")) > 1:
                 competitor_1_result,\
@@ -113,8 +113,10 @@ class ResolverAdapter:
             period=row['event_period'],
             match_minutes=row['event_seconds'],
             resolving_queue=self.resolved_queue)
-
+        
+        statistics_dict= {attr: getattr(res, attr) for attr in dir(res) if not callable(getattr(res, attr)) and not attr.startswith("__") and 'old' not in attr and attr != 'resolving_queue'}
         res.run_games()
-        return res.get_data()
+        # print(res.get_data())
+        return res.get_data(),statistics_dict
         # return resolved_games
 

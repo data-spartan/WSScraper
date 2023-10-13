@@ -22,14 +22,14 @@ if __name__ == "__main__":
 
     results_hash = RedisHash(db_id=getenv("results_redis"), key_field='ItemID')
     markets_hash = RedisHash(db_id=getenv("markets_redis"), key_field='ItemID')
-    results_history_list=RedisHash(db_id=getenv("history_redis"), key_field='ItemID')
+    # results_history_list=RedisHash(db_id=getenv("history_redis"), key_field='ItemID')
 
-    fetchsend = FetchSend(results_hash,markets_hash,results_history_list)
-    producer_instance=Producer_(prod_conf,"test1-topic")
+    fetchsend = FetchSend(results_hash,markets_hash)
+    producer_instance=Producer_(prod_conf,"betFeed")
 
     send_notification(
         {
-            'source': 'neofeed_live_1 sender',
+            'source': 'instant_bet sender',
             'severity': 'NOTIFICATION',
             'timestamp': strftime('%Y-%m-%d %H:%M:%S', localtime(time())),
             'message': 'starting'
@@ -38,13 +38,13 @@ if __name__ == "__main__":
     while True:
         try:
             fetchsend.fetch_and_send()
-            producer_instance.sender(fetchsend.match_array)
-            fetchsend.match_array.clear()
+            producer_instance.sender(fetchsend.fixtures_array)
+            fetchsend.fixtures_array['fixtures'].clear()
             
             sleep(10)
         except KeyboardInterrupt:
             error_message = {
-                'source': 'neofeed_live_1 sender',
+                'source': 'instant_bet sender',
                 'severity': 'WARNING',
                 'timestamp': strftime('%Y-%m-%d %H:%M:%S', localtime(time())),
                 'message': "scraper closed manually"
@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
         except Exception as e:
             error_message = {
-                'source': 'neofeed_live_1 sender',
+                'source': 'instant_bet sender',
                 'severity': 'ERROR',
                 'timestamp': strftime('%Y-%m-%d %H:%M:%S', localtime(time())),
                 'message': str(e)

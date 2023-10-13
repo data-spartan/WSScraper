@@ -41,4 +41,6 @@ class ResolvingQueue(Queue):
         }
         self._items.append(game_resolved)
     def return_(self):
-        return  self._list(starmap(self.dequeue, repeat((), self.__len__())))
+        
+        
+        return self._list(starmap(self.dequeue, repeat((), self.__len__())))

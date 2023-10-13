@@ -13,13 +13,15 @@ sports={'Football': '1',
 }
 
 football_periods_translation = {
-    "1": 101,
-    "Ended": 111,
-    "HT": 102,
-    "2": 103,
-    "Paused": 100,
-    "3":1,
-    "4":2
+    "1": 1,
+    "finished":0,
+    "Half Time": 6,
+    "2": 2,
+    "timeout": 8,
+    "paused":7,
+    "3":3,
+    "4":4,
+    "penalties":5
 }
 
 
@@ -43,12 +45,12 @@ sport_translations = {
 
 # random_ids_list=pd.read_csv(getenv("ids_random_path"),header=None)[0].to_list()
 
-prod_conf = {'bootstrap.servers': "localhost:9092,localhost:9093",
-             'client.id': "neofeed_live_2",
-             "message.max.bytes": 22285880,
-             "queue.buffering.max.messages": 10,
-             "batch.num.messages": 1,
-             "linger.ms": 10,
-             "acks": 1,
-             "debug": "msg",
-             "compression.type": "gzip"}
+prod_conf = {'bootstrap.servers': "localhost:9092",
+            'client.id': "instant_bet",
+            "message.max.bytes": 22285880,
+            "queue.buffering.max.messages":10,
+            "batch.num.messages":1,
+            "linger.ms":10,
+            "acks": 1,
+            "debug":"msg",
+            "compression.type":"gzip"}

@@ -3,7 +3,7 @@ import redis.client
 from os import getenv
 from constants import sport_translations
 from time import time
-from utils.resolvers import resolve_football
+# from utils.resolvers import resolve_football
 from dataclasses import dataclass,field
 from typing import Dict,List
 from utils.queue import Queue, ResolvingQueue
@@ -21,11 +21,10 @@ class FetchSend:
     # resolved_queue: ResolvingQueue = field(default_factory=ResolvingQueue, repr=False)
     
     def __post_init__(self):
-        self.resolver=ResolverAdapter(self.redis_result,self.redis_market,self.results_history_list)
-        self.playmatrix = getenv('playmatrix_endpoint')
+        self.resolver=ResolverAdapter(self.redis_result,self.redis_market)
         self.logg = logging_func("sending-data", getenv("sender_logs"))[1]  # get only logger object
-        # self.sport_container={"sport":{"Football":[],"Basketball":[]},"source":"neofeed_live_2"}
-        self.match_array=[]
+        # self.sport_container={"sport":{"Football":[],"Basketball":[]},"source":"instant_bet"}
+        self.fixtures_array={'fixtures':[]}
 
     def generate_live_fixtures(self,data: List[Dict],results_hash,markets_hash) -> List[Dict]:
         """
@@ -37,7 +36,7 @@ class FetchSend:
             if row:
                 try:
                     match_data = {
-                        'source': 'neofeed_live_3',
+                        'source': 'instant-bet',
                         'type': 'live',
                         'fixtureId': row['ItemID'],
                         'competitionString': f"{sport_translations[row['sport']] if row['sport'] in sport_translations.keys() else row['sport']}|{row['country_name']}|{row['TournamentName']}",
@@ -63,25 +62,25 @@ class FetchSend:
                             row['event_period'] = "Ended"
 
                     if row['sport'] in ['Soccer', 'Football']:
-                        match_data['scoreboard'] = generate_football_scoreboard(row)
-                        match_data["resolved"] = self.resolver.resolve_football(row)
+                        match_data["resolved"], statistics = self.resolver.resolve_football(row)
+                        match_data['scoreboard'] = generate_football_scoreboard(statistics,row['event_seconds'],row['event_period'],row['event_fetched_timestamp'])
+                        
 
 
                     if row['event_period'] == "finished":
                         results_hash.delete_key(row['ItemID'])
                         markets_hash.delete_key(row['ItemID'])
 
-                    self.match_array.append(match_data)
+                    self.fixtures_array['fixtures'].append(match_data)
 
                 except Exception as e:
                     self.logg.error(f"In generate_live_fixtures. Error {e}; Fixture id: {row['ItemID']}")                
                     continue
-        return self.match_data
+        return self.fixtures_array
     
     def fetch_and_send(self):
         res=self.redis_result.load_results_data()
         mark=self.redis_market.load_markets_data()
-        
         for i in res:
             for j in mark:
                 """
@@ -97,25 +96,5 @@ class FetchSend:
                     i["games"]=[]
 
         self.generate_live_fixtures(res,self.redis_result,self.redis_market)
-        # markets_to_send = self.generate_live_fixtures(res)
-        # resolved_live = self.resolve_game(res)
-        # resolved_to_send=[live for live in resolved_live if live["games"]]
-
-        # return markets_to_send, resolved_to_send
-
-    def resolve_game(self,data: List[Dict]) -> List[Dict]:
-
-        resolved_queue=list()
-        _append=resolved_queue.append
-        for row in data:
-            fixture_proccessed_live = {
-                "source": "neofeed_live_3",
-                "fixtureId": row['ItemID'],
-                "games": []
-            }
-            if row['sport'] =='Football':
-                fixture_proccessed_live['games'] = resolve_football(row,self.redis_result,self.redis_market)
-
-            _append(fixture_proccessed_live)
-        return resolved_queue
-
+  
+  
