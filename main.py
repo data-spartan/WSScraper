@@ -1,4 +1,4 @@
-from redis_db.redis_hash import *
+from redis_db.redis_service import *
 from utils.ws_interface import *
 from constants import *
 global random_ids_list

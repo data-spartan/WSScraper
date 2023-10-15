@@ -7,15 +7,15 @@ from time import time
 from dataclasses import dataclass,field
 from typing import Dict,List
 # from scoreboard_generators import *
-from redis_db import redis_hash
+from redis_db import redis_service
 from logger.log_func import logging_func
 from resolving.resolvers import ResolverAdapter
 from utils.scoreboard_generators import generate_football_scoreboard
 
 @dataclass
 class FetchSend:
-    redis_result: redis_hash = field(default=None)
-    redis_market: redis_hash = field(default=None)
+    redis_result: redis_service = field(default=None)
+    redis_market: redis_service = field(default=None)
 
     # resolved_queue: ResolvingQueue = field(default_factory=ResolvingQueue, repr=False)
     

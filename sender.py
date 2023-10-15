@@ -2,8 +2,8 @@ from os import getenv
 from dotenv import load_dotenv,find_dotenv
 from time import time,strftime,localtime
 from time import sleep
-from utils.kafka_producer import send_notification
-from redis_db.redis_hash import RedisHash
+from utils.kafka_notifier import send_notification
+from redis_db.redis_service import RedisHash
 from resolving.fetch_send import FetchSend
 from constants import prod_conf
 from logger.log_func import *

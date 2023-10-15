@@ -1,7 +1,7 @@
 import re
 import time
 from dataclasses import dataclass,field
-from redis_db.redis_hash import *
+from redis_db.redis_service import *
 from resolving.sports.football import FootballResolver
 from os import getenv
 from dotenv import load_dotenv,find_dotenv

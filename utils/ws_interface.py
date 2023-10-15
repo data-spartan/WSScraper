@@ -1,7 +1,7 @@
 import threading
 import sys
 import websocket
-from redis_db import redis_hash
+from redis_db import redis_service
 from utils.parser_tools import *
 from utils.retrier import *
 from typing import AnyStr,List,Dict,Any,Callable
