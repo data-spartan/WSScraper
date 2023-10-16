@@ -46,7 +46,7 @@ sport_translations = {
 # random_ids_list=pd.read_csv(getenv("ids_random_path"),header=None)[0].to_list()
 
 prod_conf = {'bootstrap.servers': "localhost:9092",
-            'client.id': "instant_bet",
+            'client.id': "live_feed",
             "message.max.bytes": 22285880,
             "queue.buffering.max.messages":10,
             "batch.num.messages":1,

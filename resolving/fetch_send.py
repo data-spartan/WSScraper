@@ -51,7 +51,6 @@ class FetchSend:
                         'competitor2': row['away_name'],
                         'sourceCompetitor2Id': row['away_id'],
                         'time': time(),
-                        'statistics':row['stats'],
                         'games': row['games'] if row["games"] else []
                     }
                     if row['event_seconds'] == "Ended":
