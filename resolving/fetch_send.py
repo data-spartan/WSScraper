@@ -24,6 +24,7 @@ class FetchSend:
         self.logg = logging_func("sending-data", getenv("sender_logs"))[1]  # get only logger object
         # self.sport_container={"sport":{"Football":[],"Basketball":[]},"source":"instant_bet"}
         self.fixtures_array={'fixtures':[]}
+        self.resolved_array= {'resolved':[]}
 
     def generate_live_fixtures(self,data: List[Dict],results_hash,markets_hash) -> List[Dict]:
         """
@@ -60,7 +61,9 @@ class FetchSend:
                             row['event_period'] = "Ended"
 
                     if row['sport'] in ['Soccer', 'Football']:
-                        match_data["resolved"], statistics = self.resolver.resolve_football(row)
+                        arr_resolved, statistics = self.resolver.resolve_football(row)
+                        if arr_resolved:
+                            self.resolved_array['resolved'].append({'fixtureId':row['ItemID'],'resolved':arr_resolved})
                         match_data['scoreboard'] = generate_football_scoreboard(statistics,row['event_seconds'],row['event_period'],row['event_fetched_timestamp'])
                         
 
@@ -78,7 +81,7 @@ class FetchSend:
                 except Exception as e:
                     self.logg.error(f"In generate_live_fixtures. Error {e}; Fixture id: {row['ItemID']}")                
                     continue
-        return self.fixtures_array
+        return self.fixtures_array, self.resolved_array
     
     def fetch_and_send(self):
         res=self.redis_result.load_results_data()

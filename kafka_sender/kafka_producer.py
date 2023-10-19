@@ -7,9 +7,10 @@ from confluent_kafka import Producer,Message
 
 class Producer_:
 
-    def __init__(self,conf,topic,partition=None):
+    def __init__(self,conf,fixt_topic,resolv_topic,partition=None):
         self.producer_instance: Producer = Producer(conf)
-        self.topic = topic
+        self.fixtures_topic = fixt_topic
+        self.resolved_topic = resolv_topic
         self.chunk_size=10
         # self.partition = partition  ##left in case key hasing is not good option
 
@@ -39,12 +40,18 @@ class Producer_:
 
         return [chunk for chunk in self.partition(fixtures,group_size)]
 
-    def sender(self,data):
+    def sender(self,fixtures,resolved):
         try:
-            if fixtures:=(data['fixtures']):
+            if fixtures:=(fixtures['fixtures']):
                 chunks=self.calculate_chunk_size(fixtures)
                 for i in chunks:
-                    self.producer_instance.produce(topic=self.topic, value=self.serializer_(i),callback=self.acked)
+                    self.producer_instance.produce(topic=self.fixtures_topic, value=self.serializer_(i),callback=self.acked)
+                self.producer_instance.poll(0)
+
+            if resolved:=(resolved['resolved']):
+                chunks=self.calculate_chunk_size(resolved)
+                for i in chunks:
+                    self.producer_instance.produce(topic=self.resolved_topic, value=self.serializer_(i),callback=self.acked)
                 self.producer_instance.poll(0)
 
         except BufferError as error:

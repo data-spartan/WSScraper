@@ -20,7 +20,7 @@ if __name__ == "__main__":
     markets_hash = RedisHash(db_id=getenv("markets_redis"), key_field='ItemID')
 
     fetchsend = FetchSend(results_hash,markets_hash)
-    producer_instance=Producer_(prod_conf,getenv('kafka_topic'))
+    producer_instance=Producer_(prod_conf,getenv('kafka_fixt_topic'),getenv('kafka_resolv_topic'))
 
     send_notification(
         {
@@ -33,8 +33,9 @@ if __name__ == "__main__":
     while True:
         try:
             fetchsend.fetch_and_send()
-            producer_instance.sender(fetchsend.fixtures_array)
-            [fetchsend.fixtures_array[i].clear() for i in fetchsend.fixtures_array]
+            producer_instance.sender(fetchsend.fixtures_array,fetchsend.resolved_array)
+            fetchsend.fixtures_array['fixtures'].clear()
+            fetchsend.resolved_array['resolved'].clear()
             sleep(10)
         except KeyboardInterrupt:
             error_message = {
