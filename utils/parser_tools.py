@@ -178,9 +178,9 @@ class Parsers:
                                 else:
                                     sub_type=football_markets_formatter(formatted_data["OddsTypeName"],events[l])
                             if base == "":
-                                formatted_data["type"] = f'main|{formatted_data["OddsTypeName"]}|{sub_type.strip()}'
+                                formatted_data["type"] = f'{formatted_data["OddsTypeName"]}|{sub_type.strip()}'
                             else:
-                                formatted_data["type"] = f'main|{formatted_data["OddsTypeName"]} {base}|{sub_type.strip()}'
+                                formatted_data["type"] = f'{formatted_data["OddsTypeName"]} {base}|{sub_type.strip()}'
                             list_raw_data[_id].append(formatted_data)
                             """
                             after each iteration we need to create new dict object to ensure that every market has

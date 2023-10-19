@@ -40,17 +40,17 @@ class FetchSend:
                         'fixtureId': row['ItemID'],
                         'competitionString': f"{sport_translations[row['sport']] if row['sport'] in sport_translations.keys() else row['sport']}|{row['country_name']}|{row['TournamentName']}",
                         'region': row['country_name'],
-                        'sourceRegionId': row['country_id'],
+                        'regionId': row['country_id'],
                         'sport': sport_translations[row['sport']] if row['sport'] in sport_translations.keys() else row['sport'],
-                        'sourceSportId': row['sport_id'],
+                        'sportId': row['sport_id'],
                         'competition': row['TournamentName'],
-                        'sourceCompetitionId': row['TournamentId'],
+                        'competitionId': row['TournamentId'],
                         'fixtureTimestamp': row['event_start_time'],
                         'competitor1': row['home_name'],
-                        'sourceCompetitor1Id': row['home_id'],
+                        'competitor1Id': row['home_id'],
                         'competitor2': row['away_name'],
-                        'sourceCompetitor2Id': row['away_id'],
-                        'time': time(),
+                        'competitor2Id': row['away_id'],
+                        'sentTime': time(),
                         'games': row['games'] if row["games"] else []
                     }
                     if row['event_seconds'] == "Ended":
@@ -68,7 +68,11 @@ class FetchSend:
                     if row['event_period'] == "finished":
                         results_hash.delete_key(row['ItemID'])
                         markets_hash.delete_key(row['ItemID'])
-
+                    
+                    # if games:=(row["games"]):
+                    #     self.fixtures_array['games'].append(games)
+                    # if resolved:=(match_data["resolved"]):
+                    #     self.fixtures_array['games'].append(resolved)
                     self.fixtures_array['fixtures'].append(match_data)
 
                 except Exception as e:
