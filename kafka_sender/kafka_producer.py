@@ -10,7 +10,7 @@ class Producer_:
     def __init__(self,conf,topic,partition=None):
         self.producer_instance: Producer = Producer(conf)
         self.topic = topic
-        self.chunk_size=5
+        self.chunk_size=10
         # self.partition = partition  ##left in case key hasing is not good option
 
     def serializer_(self,payload:dict) -> bytes:
@@ -49,5 +49,5 @@ class Producer_:
 
         except BufferError as error:
             self.producer_instance.poll(1)
-            self.producer_instance.produce(self.topic, value=self.serializer_(data),callback=self.acked)
+            self.producer_instance.produce(self.topic, value=self.serializer_(fixtures),callback=self.acked)
             self.producer_instance.flush()

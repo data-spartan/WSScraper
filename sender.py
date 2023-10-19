@@ -34,8 +34,7 @@ if __name__ == "__main__":
         try:
             fetchsend.fetch_and_send()
             producer_instance.sender(fetchsend.fixtures_array)
-            fetchsend.fixtures_array['fixtures'].clear()
-            
+            [fetchsend.fixtures_array[i].clear() for i in fetchsend.fixtures_array]
             sleep(10)
         except KeyboardInterrupt:
             error_message = {

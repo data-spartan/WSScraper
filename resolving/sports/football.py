@@ -47,7 +47,7 @@ class FootballResolver:
         return self.resolving_queue.return_()
 
     # self.resolving_queue.append_resolved_games(
-    #     f"main|Next goal - Current score: {self.competitor_1_old_result}:{self.competitor_2_old_result}|2", "won")
+    #     f"Next goal - Current score: {self.competitor_1_old_result}:{self.competitor_2_old_result}|2", "won")
 
     def run_games(self):
         self.check_result_change()
@@ -60,77 +60,90 @@ class FootballResolver:
         self.live_total_goals()
 
     def live_next_goal(self):
+        sum_ = self.competitor_1_result + self.competitor_2_result + 1
+        sum_half = self.competitor_1_period_1_result + self.competitor_2_period_1_result + 1
+        if sum_==1:
+            sufix='st'
+        if sum_==2:
+            sufix='nd'
+        if sum_==3:
+            sufix='rd'
+        else:
+            sufix='th'
+
         if self.competitor_2_result > self.competitor_2_old_result:
+
             self.resolving_queue.append_resolved_games(
-                f"main|Next goal - Current score: {self.competitor_1_old_result}:{self.competitor_2_old_result}|2",
+                f"{sum_}{sufix} Goal To Score|2",
                 "won")
             self.resolving_queue.append_resolved_games(
-                f"main|Next goal - Current score: {self.competitor_1_old_result}:{self.competitor_2_old_result}|1",
+                f"{sum_}{sufix} Goal To Score|1",
                 "lost")
             self.resolving_queue.append_resolved_games(
-                f"main|Next goal - Current score: {self.competitor_1_old_result}:{self.competitor_2_old_result}|no more goals",
+                f"{sum_}{sufix} Goal To Score|no more goals",
                 "lost")
             if self.period == "1":
+                '"1st Half 1st Goal To Score'
                 self.resolving_queue.append_resolved_games(
-                    f"main|1. Half Next Goal - Current score: {self.competitor_1_period_1_old_result}:{self.competitor_2_period_1_old_result}|2",
+                    f"1st Half {sum_}{sufix} Goal To Score|2",
                     "won")
                 self.resolving_queue.append_resolved_games(
-                    f"main|1. Half Next Goal - Current score: {self.competitor_1_period_1_old_result}:{self.competitor_2_period_1_old_result}|1",
+                    f"1st Half {sum_}{sufix} Goal To Score||1",
                     "lost")
                 self.resolving_queue.append_resolved_games(
-                    f"main|1. Half Next Goal - Current score: {self.competitor_1_period_1_old_result}:{self.competitor_2_period_1_old_result}|no more goals",
+                    f"1st Half {sum_}{sufix} Goal To Score||no more goals",
                     "lost")
         else:
             self.resolving_queue.append_resolved_games(
-                f"main|Next goal - Current score: {self.competitor_1_old_result}:{self.competitor_2_old_result}|1",
+                f"{sum_}{sufix} Goal To Score|1",
                 "won")
             self.resolving_queue.append_resolved_games(
-                f"main|Next goal - Current score: {self.competitor_1_old_result}:{self.competitor_2_old_result}|2",
+                f"{sum_}{sufix} Goal To Score|2",
                 "lost")
             self.resolving_queue.append_resolved_games(
-                f"main|Next goal - Current score: {self.competitor_1_old_result}:{self.competitor_2_old_result}|no more goals",
+                f"{sum_}{sufix} Goal To Score|no more goals",
                 "lost")
             if self.period == "1":
                 self.resolving_queue.append_resolved_games(
-                    f"main|1. Half Next Goal - Current score: {self.competitor_1_period_1_old_result}:{self.competitor_2_period_1_old_result}|1",
+                    f"1st Half {sum_}{sufix} Goal To Score|1",
                     "won")
                 self.resolving_queue.append_resolved_games(
-                    f"main|1. Half Next Goal - Current score: {self.competitor_1_period_1_old_result}:{self.competitor_2_period_1_old_result}|2",
+                    f"1st Half {sum_}{sufix} Goal To Score|2",
                     "lost")
                 self.resolving_queue.append_resolved_games(
-                    f"main|1. Half Next Goal - Current score: {self.competitor_1_period_1_old_result}:{self.competitor_2_period_1_old_result}|no more goals",
+                    f"1st Half {sum_}{sufix} Goal To Score||no more goals",
                     "lost")
 
     def live_btts(self):
         if self.competitor_1_result > 0 and self.competitor_2_result > 0:
             self.resolving_queue.append_resolved_games(
-                f"main|Both Teams to Score|yes",
+                f"Both Teams To Score|Yes",
                 "won"
             )
             self.resolving_queue.append_resolved_games(
-                f"main|Both Teams to Score|no",
+                f"Both Teams To Score|No",
                 "lost"
             )
 
     def live_total_goals(self):
         complete_result = self.competitor_1_result + self.competitor_2_result
-        for total in range(0, 6, 1):
+        for total in range(0, 8, 1):
             if complete_result > (total + 0.5):
                 self.resolving_queue.append_resolved_games(
-                    f"main|Total Goals ({total + 0.5})|over",
+                    f"Total Goals {total + 0.5}|Over",
                     "won"
                 )
                 self.resolving_queue.append_resolved_games(
-                    f"main|Total Goals ({total + 0.5})|under",
+                    f"Total Goals {total + 0.5}|Under",
                     "lost"
                 )
             else:
                 self.resolving_queue.append_resolved_games(
-                    f"main|Total Goals ({total + 0.5})|over",
+                    f"Total Goals {total + 0.5}|Over",
                     "lost"
                 )
                 self.resolving_queue.append_resolved_games(
-                    f"main|Total Goals ({total + 0.5})|under",
+                    f"Total Goals {total + 0.5}|Under",
                     "won"
                 )
 
@@ -148,18 +161,18 @@ class FootballResolver:
     def _game_correct_score(self):
         competitor_1_result = self.competitor_1_result
         competitor_2_result = self.competitor_2_result
-        pairs = [(x, y) for x in range(4) for y in range(4)]
+        pairs = [(x, y) for x in range(8) for y in range(8)]
         ft = (competitor_1_result, competitor_2_result)
 
         for i in pairs:
             if ft == i:
                 a, b = i
                 self.resolving_queue.append_resolved_games(
-                    f"main|Correct score|{a}:{b}",
+                    f"Correct Score|{a}-{b}",
                     "won"
                 )
             else:
                 x, y = i
-                self.resolving_queue.append_resolved_games(f"main|Correct score|{x}:{y}",
+                self.resolving_queue.append_resolved_games(f"Correct Score|{x}-{y}",
                                                            "lost"
                                                            )
