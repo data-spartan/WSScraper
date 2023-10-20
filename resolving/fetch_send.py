@@ -51,31 +51,38 @@ class FetchSend:
                         'competitor1Id': row['home_id'],
                         'competitor2': row['away_name'],
                         'competitor2Id': row['away_id'],
-                        'sentTime': time(),
+                        # 'status': 'In Progress',
+                        'sentTime':time(),
                         'games': row['games'] if row["games"] else []
                     }
-                    if row['event_seconds'] == "Ended":
-                        row['event_period'] = "Ended"
-                    elif row['event_seconds'] == "Paused":
+
+                    if row['event_period'] == "timeout":
                         if int(time()) - int(row['event_fetched_timestamp']) > 40:
                             row['event_period'] = "Ended"
-
+                    
+    
                     if row['sport'] in ['Soccer', 'Football']:
                         arr_resolved, statistics = self.resolver.resolve_football(row)
-                        if arr_resolved:
-                            self.resolved_array['resolved'].append({'fixtureId':row['ItemID'],'resolved':arr_resolved})
-                        match_data['scoreboard'] = generate_football_scoreboard(statistics,row['event_seconds'],row['event_period'],row['event_fetched_timestamp'])
-                        
-
-
-                    if row['event_period'] == "finished":
-                        results_hash.delete_key(row['ItemID'])
-                        markets_hash.delete_key(row['ItemID'])
+                        arr_resolved=[{
+                                "type": "Both Teams To Score|Yes",
+                                "status": "won"
+                                },
+                                {
+                                "type": "Both Teams To Score|No",
+                                "status": "lost"
+                                }
+                                ]
                     
-                    # if games:=(row["games"]):
-                    #     self.fixtures_array['games'].append(games)
-                    # if resolved:=(match_data["resolved"]):
-                    #     self.fixtures_array['games'].append(resolved)
+                    if row['event_period'] != "Ended":
+                        status="In progress"
+                    else:
+                        status="Ended"
+                     
+                    if arr_resolved:
+                        self.resolved_array['resolved'].append({'fixtureId':row['ItemID'],'status':status,'resolved':arr_resolved})
+                        
+                    match_data['scoreboard'] = generate_football_scoreboard(statistics,row['event_seconds'],row['event_period'],row['event_fetched_timestamp'])         
+
                     self.fixtures_array['fixtures'].append(match_data)
 
                 except Exception as e:

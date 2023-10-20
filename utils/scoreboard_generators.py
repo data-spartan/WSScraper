@@ -2,8 +2,7 @@ import copy
 from constants import *
 from time import time
 import re
-def generate_fixture_with_one_value(setting_value) -> dict:
-    return {'110':setting_value , '111': setting_value, '112': setting_value}
+
 
 def generate_football_scoreboard(stats: dict, time:str, period:str,fetched_timestamp:int) -> dict:
     
