@@ -11,6 +11,7 @@ from redis_db import redis_service
 from logger.log_func import logging_func
 from resolving.resolvers import ResolverAdapter
 from utils.scoreboard_generators import generate_football_scoreboard
+from datetime import datetime
 
 @dataclass
 class FetchSend:
@@ -51,8 +52,8 @@ class FetchSend:
                         'competitor1Id': row['home_id'],
                         'competitor2': row['away_name'],
                         'competitor2Id': row['away_id'],
-                        # 'status': 'In Progress',
-                        'sentTime':time(),
+                        'status': 'In Progress',
+                        'sentTime':datetime.now(),
                         'games': row['games'] if row["games"] else []
                     }
 

@@ -37,7 +37,7 @@ if __name__ == "__main__":
             [(results_hash.delete_key(i['fixtureId']),markets_hash.delete_key(i['fixtureId'])) for i in fetchsend.resolved_array["resolved"] if i['status'] == "Ended"]
             fetchsend.fixtures_array['fixtures'].clear()
             fetchsend.resolved_array['resolved'].clear()
-            sleep(10)
+            sleep(2)
         except KeyboardInterrupt:
             error_message = {
                 'source': 'instant_bet sender',

@@ -45,7 +45,7 @@ class Producer_:
             if fixtures:=(fixtures['fixtures']):
                 chunks=self.calculate_chunk_size(fixtures)
                 for i in chunks:
-                    self.producer_instance.produce(topic=self.fixtures_topic, value=self.serializer_(i),callback=self.acked)
+                    self.producer_instance.produce(topic=self.fixtures_topic,value=self.serializer_(i),callback=self.acked)
                 self.producer_instance.poll(0)
 
             if resolved:=(resolved['resolved']):
