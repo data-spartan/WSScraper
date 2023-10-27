@@ -6,6 +6,7 @@ from dataclasses import dataclass,field
 from os import getenv
 from dotenv import load_dotenv
 from utils.markets_editor import *
+import hashlib
 
 load_dotenv(".env")
 
@@ -13,6 +14,9 @@ load_dotenv(".env")
 class Parsers:
     miss_teams: AnyStr = field(default_factory=lambda: getenv("missing_team_names"),repr=False)
     ids_random_path: AnyStr = field(default_factory=lambda: getenv("ids_random_path"),repr=False)
+
+    def __post_init__(self):
+        self.hashFunc=hashlib.md5
 
     def match_info_parser(self,raw_data: Dict, old_result: List[Dict]) -> List[Dict]:
         """
@@ -79,8 +83,9 @@ class Parsers:
                                 formatted_data["event_period"] = "2"
 
                             elif formatted_data["event_period"] == "finished":
-                                if formatted_data["event_period"]=="finished":
-                                    print(formatted_data["ItemID"],"FINISHED")
+                                formatted_data["event_period"] = "Ended"
+                                formatted_data["event_seconds"] = "Ended"
+                                print(formatted_data["ItemID"],"Ended")
                                 for scores in games[l]["stats"]:
                                     """
                                     excluding set3 bcs game cant be finished in overtime1(extra-time) period
@@ -164,7 +169,7 @@ class Parsers:
                     raw_data = game[j]["market"]
                     for k in raw_data:
                         base = raw_data[k]["base"] if "base" in raw_data[k] else ""
-                        formatted_data["sourceGameId"] = _int(k)
+                        # formatted_data["sourceGameId"] = _int(k)
                         formatted_data["OddsTypeName"] = raw_data[k]["name"]
                         events = raw_data[k]["event"]
                         for l in events:
@@ -181,6 +186,8 @@ class Parsers:
                                 formatted_data["type"] = f'{formatted_data["OddsTypeName"]}|{sub_type.strip()}'
                             else:
                                 formatted_data["type"] = f'{formatted_data["OddsTypeName"]} {base}|{sub_type.strip()}'
+                            # print(f"{k}{sub_type.strip()}")
+                            formatted_data["sourceGameId"] = f"{k}{sub_type.strip()}"
                             list_raw_data[_id].append(formatted_data)
                             """
                             after each iteration we need to create new dict object to ensure that every market has

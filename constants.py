@@ -13,15 +13,15 @@ sports={'Football': '1',
 }
 
 football_periods_translation = {
-    "1": 1,
-    "finished":0,
-    "Half Time": 6,
-    "2": 2,
-    "timeout": 8,
-    "paused":7,
-    "3":3,
-    "4":4,
-    "penalties":5
+    "1": "1st Half",
+    "finished":"Ended",
+    "Half Time": "Half Time",
+    "2": "2nd Half",
+    "timeout": "Timeout",
+    "paused":"Paused",
+    "overtime1":"Overtime 1",
+    "overtime2":"Overtime 2",
+    "penalties":"Penalties"
 }
 
 

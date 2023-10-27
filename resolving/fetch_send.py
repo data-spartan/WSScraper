@@ -11,6 +11,7 @@ from redis_db import redis_service
 from logger.log_func import logging_func
 from resolving.resolvers import ResolverAdapter
 from utils.scoreboard_generators import generate_football_scoreboard
+from datetime import datetime
 
 @dataclass
 class FetchSend:
@@ -24,6 +25,7 @@ class FetchSend:
         self.logg = logging_func("sending-data", getenv("sender_logs"))[1]  # get only logger object
         # self.sport_container={"sport":{"Football":[],"Basketball":[]},"source":"instant_bet"}
         self.fixtures_array={'fixtures':[]}
+        self.resolved_array= {'resolved':[]}
 
     def generate_live_fixtures(self,data: List[Dict],results_hash,markets_hash) -> List[Dict]:
         """
@@ -50,35 +52,44 @@ class FetchSend:
                         'competitor1Id': row['home_id'],
                         'competitor2': row['away_name'],
                         'competitor2Id': row['away_id'],
-                        'sentTime': time(),
+                        'status': 'In Progress',
+                        'sentTime':datetime.now(),
                         'games': row['games'] if row["games"] else []
                     }
-                    if row['event_seconds'] == "Ended":
-                        row['event_period'] = "Ended"
-                    elif row['event_seconds'] == "Paused":
+
+                    if row['event_period'] == "timeout":
                         if int(time()) - int(row['event_fetched_timestamp']) > 40:
                             row['event_period'] = "Ended"
-
-                    if row['sport'] in ['Soccer', 'Football']:
-                        match_data["resolved"], statistics = self.resolver.resolve_football(row)
-                        match_data['scoreboard'] = generate_football_scoreboard(statistics,row['event_seconds'],row['event_period'],row['event_fetched_timestamp'])
-                        
-
-
-                    if row['event_period'] == "finished":
-                        results_hash.delete_key(row['ItemID'])
-                        markets_hash.delete_key(row['ItemID'])
                     
-                    # if games:=(row["games"]):
-                    #     self.fixtures_array['games'].append(games)
-                    # if resolved:=(match_data["resolved"]):
-                    #     self.fixtures_array['games'].append(resolved)
+    
+                    if row['sport'] in ['Soccer', 'Football']:
+                        arr_resolved, statistics = self.resolver.resolve_football(row)
+                        arr_resolved=[{
+                                "type": "Both Teams To Score|Yes",
+                                "status": "won"
+                                },
+                                {
+                                "type": "Both Teams To Score|No",
+                                "status": "lost"
+                                }
+                                ]
+                    
+                    if row['event_period'] != "Ended":
+                        status="In progress"
+                    else:
+                        status="Ended"
+                     
+                    if arr_resolved:
+                        self.resolved_array['resolved'].append({'fixtureId':row['ItemID'],'status':status,'resolved':arr_resolved})
+                        
+                    match_data['scoreboard'] = generate_football_scoreboard(statistics,row['event_seconds'],row['event_period'],row['event_fetched_timestamp'])         
+
                     self.fixtures_array['fixtures'].append(match_data)
 
                 except Exception as e:
                     self.logg.error(f"In generate_live_fixtures. Error {e}; Fixture id: {row['ItemID']}")                
                     continue
-        return self.fixtures_array
+        return self.fixtures_array, self.resolved_array
     
     def fetch_and_send(self):
         res=self.redis_result.load_results_data()

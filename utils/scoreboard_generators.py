@@ -2,8 +2,7 @@ import copy
 from constants import *
 from time import time
 import re
-def generate_fixture_with_one_value(setting_value) -> dict:
-    return {'110':setting_value , '111': setting_value, '112': setting_value}
+
 
 def generate_football_scoreboard(stats: dict, time:str, period:str,fetched_timestamp:int) -> dict:
     
@@ -43,7 +42,7 @@ def generate_football_scoreboard(stats: dict, time:str, period:str,fetched_times
             'goalKicks':  {},
             'freeKicks':  {},
             'score':  {
-            'competitor_1_result':stats['competitor_1_result'] ,
+            'competitor_1_result':stats['competitor_1_result'],
             'competitor_2_result':stats['competitor_2_result']
             },
             'score_by_period':{
@@ -58,7 +57,7 @@ def generate_football_scoreboard(stats: dict, time:str, period:str,fetched_times
                 'competitor_1_penalties_result':stats['competitor_1_penalties_result'],
                 'competitor_2_penalties_result':stats['competitor_2_penalties_result']
             },
-            'periodId': football_periods_translation[str(period)] if str(period) in football_periods_translation.keys() else period,
+            'period': football_periods_translation[str(period)] if str(period) in football_periods_translation.keys() else period,
             'availablePeriods': [1,2], #1st,2nd half
             'timer': {'visible': visible, 'running': running, 'seconds': time, 'refTimestamps': fetched_timestamp}
         }
