@@ -34,10 +34,10 @@ if __name__ == "__main__":
         try:
             fetchsend.fetch_and_send()
             producer_instance.sender(fetchsend.fixtures_array,fetchsend.resolved_array)
-            [(results_hash.delete_key(i['fixtureId']),markets_hash.delete_key(i['fixtureId'])) for i in fetchsend.resolved_array["resolved"] if i['status'] == "Ended"]
+            # [(results_hash.delete_key(i['fixtureId']),markets_hash.delete_key(i['fixtureId'])) for i in fetchsend.resolved_array["resolved"] if i['status'] == "Ended"]
             fetchsend.fixtures_array['fixtures'].clear()
             fetchsend.resolved_array['resolved'].clear()
-            sleep(2)
+            sleep(10)
         except KeyboardInterrupt:
             error_message = {
                 'source': 'instant_bet sender',

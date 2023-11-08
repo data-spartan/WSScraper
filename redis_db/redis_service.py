@@ -15,12 +15,15 @@ class RedisHash:
     db_id: int
     key_field: str = None
     list_name: str = None
+    hash_name:str=None
     expiry_time: int = 100
     """
     Setting None as default value makes init attributes optional
     """
     def __post_init__(self):
-        self.__redis: redis.client.Redis = redis.Redis(db=self.db_id)
+        self.connection_pool_=redis.ConnectionPool(max_connections=30,db=self.db_id, decode_responses=True)
+        self.__redis: redis.client.Redis = redis.Redis(password=None,db=self.db_id,connection_pool=self.connection_pool_)
+        # self.__redis: redis.client.Redis = redis.Redis(db=self.db_id)
 
     def flush(self):
         self.__redis.flushdb()
@@ -99,3 +102,10 @@ class RedisHash:
     def load_missing_keys(self):
         res=self.__redis.lrange(self.list_name,0,-1)
         return _list(map(_loads,res)) if res else _list()
+
+    def write_missing_ids(self,hash:str,object):
+        if object:
+            self.__redis.hmset(hash,object)
+
+    def load_miss(self,hash:str,fields:list=None):
+        return self.__redis.hgetall(hash)

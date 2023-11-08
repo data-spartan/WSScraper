@@ -2,6 +2,7 @@ from time import time
 from typing import Dict, List,AnyStr
 import pandas as pd
 import json
+import uuid
 from dataclasses import dataclass,field
 from os import getenv
 from dotenv import load_dotenv
@@ -210,60 +211,26 @@ class Parsers:
 
         return queue
 
-    def fill_missing_data_keys(self, data: List[Dict],random_ids_list,miss_keys_redis) -> List[Dict]:
-        """
-        Fills missing data keys values using rotating pool of random list of nums that are unique and persistant for every team;
-        teams ids are saved in redis as well as in json file as backup if redis go down;
-        e.g missing keys home_id,away_id...;
-        """
-        _int=int
-        load_from_redis=miss_keys_redis.load_missing_keys()
-        if load_from_redis:
-            existing_teams=[i["name"] for i in load_from_redis]
-        else:
-            existing_teams=[]
+    def fill_missing_data_keys(self, data,existing_teams):
+        #feed doesnt have team ids, i needed to generate them and persist them in redis to maintain data integrity
+        new = {}
+        for fixt in data:        
+            if not existing_teams.get(fixt['home_name']):#if in redis id for specific team doesnt exist generate id
+                hash1=uuid.uuid1().__str__()
+                new.update({fixt['home_name']:hash1})
+                fixt['home_id']=hash1
+            else:
+                home_id=existing_teams.get(fixt['home_name'])
+                fixt['home_id']=home_id
+            if not existing_teams.get(fixt['away_name']):
+                hash2=uuid.uuid1().__str__()
+                new.update({fixt['away_name']:hash2})
+                fixt['away_id']=hash2
+            else:
+                away_id=existing_teams.get(fixt['away_name'])
+                fixt['away_id']=away_id
 
-        arrived_team_names=list()
-        for i in data:
-            arrived_team_names.extend([i["home_name"],i["away_name"]])
-        """
-        unmapped_teams are teams that are not in redis but are only in arrived data
-        """
-        # existing_teams=[i["name"] for i in load_from_redis]
-        unmapped_teams=list(set(arrived_team_names) - set(existing_teams))
-        if not unmapped_teams:
-            for i in data:
-                for j in load_from_redis:
-                    if j["name"] == i["home_name"]:
-                        i["home_id"]=j["id"]
-                    elif j["name"]== i["away_name"]:
-                        i["away_id"]=j["id"]
-        else:
-            len_unmapped_teams=len(unmapped_teams)
-            """
-            to prevent duplicates teams ids in every else condition we pop out used ids and remained ids we write to csv file ids_random.csv.
-            Then we make pairs from unmapped_tams and popped ids and proceed to populate missing data. 
-            """
-            ids=[random_ids_list.pop(-1) for i in range(len_unmapped_teams)]
-            pd.DataFrame(random_ids_list).to_csv(self.ids_random_path,index=False,header=False)
-            pairs=list(zip(unmapped_teams,ids))
-            id_name=[{"name":i[0], "id":i[1]} for i in pairs]
-
-            """
-            adding a backup as file-like object if redis goes down
-            discus with others if its necessary this step
-            """
-            with open(self.miss_teams, 'w') as outfile:
-                json.dump(load_from_redis, outfile)
-            miss_keys_redis.save_missing_keys(id_name)
-
-            for i in data:
-                for j in id_name:
-                    if j["name"] == i["home_name"]:
-                        i["home_id"]=j["id"]
-                        break
-                    elif j["name"]== i["away_name"]:
-                        i["away_id"]=j["id"]
-                        break
-
-        return data
+            existing_teams.update(new)
+        return data, new
+            
+# 23af2c34-7e73-11ee-9917-5917db2214b1

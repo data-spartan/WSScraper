@@ -21,6 +21,7 @@ class WebsocketClient:
     parsers: Any = field(default_factory=Parsers,repr=False)
     
     def __post_init__(self):
+        self.existing_teams=self.miss_keys_redis.load_miss('missing_teams_id')
         self.fh, self.logg = logging_func("ws", getenv("main_logs"))
         self.pill2kill = threading.Event() #---ensures if error happens that potential hanging thread is closed
         self.conn_closed_count=0
@@ -67,8 +68,10 @@ class WebsocketClient:
             if "name" in raw_data[next(iter(raw_data))]:
                 old_result = self.result_redis.load_results_data()
                 result_info = self.parsers.match_info_parser(raw_data,old_result)
-                fill_missing = self.parsers.fill_missing_data_keys(result_info,self.random_ids_list,self.miss_keys_redis)
-                self.result_redis.save_results(fill_missing)
+                fixtures_info,found_teams = self.parsers.fill_missing_data_keys(result_info,self.existing_teams)
+                if found_teams:
+                    self.miss_keys_redis.write_missing_ids('miss_teams',found_teams)
+                self.result_redis.save_results(fixtures_info)
             else:
                 old_markets=self.markets_redis.load_markets_data()
                 markets_info=self.parsers.markets_parser(raw_data,old_markets)

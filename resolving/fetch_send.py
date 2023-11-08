@@ -52,7 +52,7 @@ class FetchSend:
                         'competitor1Id': row['home_id'],
                         'competitor2': row['away_name'],
                         'competitor2Id': row['away_id'],
-                        'status': 'In Progress',
+                        # 'status': 'In Progress',
                         'sentTime':datetime.now(),
                         'games': row['games'] if row["games"] else []
                     }
@@ -80,7 +80,7 @@ class FetchSend:
                         status="Ended"
                      
                     if arr_resolved:
-                        self.resolved_array['resolved'].append({'fixtureId':row['ItemID'],'status':status,'resolved':arr_resolved})
+                        self.resolved_array['resolved'].append({'fixtureId':row['ItemID'],'status':'Ended','resolved':arr_resolved})
                         
                     match_data['scoreboard'] = generate_football_scoreboard(statistics,row['event_seconds'],row['event_period'],row['event_fetched_timestamp'])         
 
