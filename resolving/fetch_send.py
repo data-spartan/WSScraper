@@ -93,7 +93,7 @@ class FetchSend:
     
     def fetch_and_send(self):
         res=self.redis_result.load_results_data()
-        #check if there is homeid,awayud that is empty and filter them out
+        #check if there is homeid,awayid that is empty and filter them out
         mark=self.redis_market.load_markets_data()
         for i in res:
             for j in mark:
@@ -108,7 +108,7 @@ class FetchSend:
                     break
                 else:
                     i["games"]=[]
-
+        res[:] = (i for i in res if i['home_id'] and i['away_id'] and i["games"])
         self.generate_live_fixtures(res,self.redis_result,self.redis_market)
   
   

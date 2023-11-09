@@ -35,12 +35,12 @@ class WebsocketClient:
             first request is for matches data, second for related markets;
             need to add sleep(2) bcs sometimes happens that there are no messages to read from, so socket closes connection and error fires up.
             """
-            print('IN SUBCR')
+
             ws.send(
                 '{"command":"get","params":{"source":"betting","what":{"sport":["id","name","alias","order"],"competition":["id","order","name"],"region":["id","name","alias"],"game":[["id","start_ts","team1_name","team2_name","type","info","stats","markets_count","is_blocked","video_provider"]]},"where":{"game":{"type":1},"sport":{"id":{"@in":[1]}}},"subscribe":false},"rid":"2"}')
             ws.send(
                 '{"command": "get", "params": {"source": "betting", "is_betslip": true, "what": {"sport":["id"],"game": ["id", "is_blocked", "team1_name", "team2_name", "team1_reg_name", "team2_reg_name", "is_live"], "market": ["base", "type", "name", "home_score", "away_score", "cashout", "extra_info"], "event": ["id", "price", "type", "type_1", "name", "base", "ew_allowed"]},"where":{"sport":{"id":{"@in":[1]}},"game":{"is_live":1}}}, "subscribe": false}, "rid": "2"}')
-            sleep(4)
+            sleep(5)
 
     def on_open(self, ws:websocket.WebSocketApp):
         self.logg.info(f"Websocket({ws}) connection opened.")

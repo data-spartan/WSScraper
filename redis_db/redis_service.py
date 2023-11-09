@@ -37,6 +37,7 @@ class RedisHash:
         current matches. We then bulk write into the redis from which we use inserted data for data change comparsion data.
         """
         with self.__redis.pipeline() as pipe:
+            # print(len(formatted), "IN RES")
             for i in formatted:
                 pipe.set(i[self.key_field], _dumps(i))
                 pipe.expire(i[self.key_field], self.expiry_time)
@@ -48,6 +49,7 @@ class RedisHash:
         current markets. We then bulk write into the redis from which we use inserted data for data change comparsion data.
         """
         with self.__redis.pipeline() as pipe:
+            # print(len(formatted), "IN MARKETS")
             for i in formatted:
                 pipe.set(_list(_key(i))[0], _dumps(i[_list(_key(i))[0]]))
                 pipe.expire(_list(_key(i))[0], self.expiry_time)
@@ -79,15 +81,9 @@ class RedisHash:
             for key in self.__redis.keys():
                 pipe.get(key)
             result=pipe.execute()
+           
+        result=_list(map(_loads,result)) if result else _list()
         
-        if result:
-            result=_list(map(_loads,result))  
-            result[:]=[i for i in result if i['home_id'] and i['away_id'] ] 
-            #in case some fixture teams dont have asigned ids filter them out
-        else:
-            result=_list()
-        # result=_list(map(_loads,result)) if result else _list()
-
         return result
 
     def load_markets_data(self) -> list:
@@ -98,14 +94,8 @@ class RedisHash:
             for key in self.__redis.keys():
                 pipe.get(key)
             markets=pipe.execute()
-        if markets:
-            markets=_list(map(_loads,markets))  
-            markets[:]=[i for i in markets if i] 
-            #in case some fixtures doesnt have markets at the moment, need to filter them out
-            #bcs it some sort of bug on feed source
-        else:
-            markets=_list()
         
+        markets=_list(map(_loads,markets))  if markets else _list()
         return markets
 
     def save_missing_keys(self,data):
