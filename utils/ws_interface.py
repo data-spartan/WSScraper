@@ -35,12 +35,12 @@ class WebsocketClient:
             first request is for matches data, second for related markets;
             need to add sleep(2) bcs sometimes happens that there are no messages to read from, so socket closes connection and error fires up.
             """
-
+            print('IN SUBCR')
             ws.send(
                 '{"command":"get","params":{"source":"betting","what":{"sport":["id","name","alias","order"],"competition":["id","order","name"],"region":["id","name","alias"],"game":[["id","start_ts","team1_name","team2_name","type","info","stats","markets_count","is_blocked","video_provider"]]},"where":{"game":{"type":1},"sport":{"id":{"@in":[1]}}},"subscribe":false},"rid":"2"}')
             ws.send(
                 '{"command": "get", "params": {"source": "betting", "is_betslip": true, "what": {"sport":["id"],"game": ["id", "is_blocked", "team1_name", "team2_name", "team1_reg_name", "team2_reg_name", "is_live"], "market": ["base", "type", "name", "home_score", "away_score", "cashout", "extra_info"], "event": ["id", "price", "type", "type_1", "name", "base", "ew_allowed"]},"where":{"sport":{"id":{"@in":[1]}},"game":{"is_live":1}}}, "subscribe": false}, "rid": "2"}')
-            sleep(15)
+            sleep(4)
 
     def on_open(self, ws:websocket.WebSocketApp):
         self.logg.info(f"Websocket({ws}) connection opened.")
@@ -66,12 +66,17 @@ class WebsocketClient:
             detecting markets/macthes info; if "name" in msg then it is match info, otherwise it is markets info;
             """
             if "name" in raw_data[next(iter(raw_data))]:
-                old_result = self.result_redis.load_results_data()
-                result_info = self.parsers.match_info_parser(raw_data,old_result)
-                fixtures_info,found_teams = self.parsers.fill_missing_data_keys(result_info,self.existing_teams)
-                if found_teams:
-                    self.miss_keys_redis.write_missing_ids('miss_teams',found_teams)
-                self.result_redis.save_results(fixtures_info)
+                try:
+                    old_result = self.result_redis.load_results_data()
+                    result_info = self.parsers.match_info_parser(raw_data,old_result)
+                    
+                    fixtures_info,found_teams = self.parsers.fill_missing_data_keys(result_info,self.existing_teams)
+                    if found_teams:
+                        self.miss_keys_redis.write_missing_ids('miss_teams',found_teams)
+                
+                    self.result_redis.save_results(fixtures_info)
+                except Exception as e:
+                    raise e
             else:
                 old_markets=self.markets_redis.load_markets_data()
                 markets_info=self.parsers.markets_parser(raw_data,old_markets)
@@ -79,22 +84,21 @@ class WebsocketClient:
 
     
     def on_error(self, ws: websocket.WebSocketApp, error:websocket.WebSocketException):
-        self.pill2kill.set()
         if error.__str__() == "Connection to remote host was lost.":
             if self.conn_closed_count < 3:
                 self.conn_closed_count+=1
+                sleep(3)
             else:
                 self.logg.warning(f"{error}. Number od disconnections {self.conn_closed_count}")
                 self.conn_closed_count = 0
                 self.pill2kill.clear()
                 ws.close()
         else:
-            self.error_count += 1
             if self.error_count < 3:
+                self.error_count += 1
                 self.logg.error(f"{error}. Number of errors {self.error_count}")
-                #sleep(3)
+                sleep(3)
             else:
-                
                 self.logg.error(f"{error}. Number of errors {self.error_count}", exc_info=True)
                 self.error_count=0
                 self.pill2kill.clear()
@@ -106,6 +110,7 @@ class WebsocketClient:
             sleep(1)
             self.connection()
         else:
+            self.logg.warning(f"SCRAPER EXITED")
             return
 
     # @auto_recovery

@@ -39,7 +39,7 @@ class FetchSend:
                     match_data = {
                         'source': 'instant-bet',
                         'type': 'live',
-                        'fixtureId': row['ItemID'],
+                        'fixtureId': row['ItemId'],
                         'competitionString': f"{sport_translations[row['sport']] if row['sport'] in sport_translations.keys() else row['sport']}|{row['country_name']}|{row['TournamentName']}",
                         'region': row['country_name'],
                         'regionId': row['country_id'],
@@ -80,30 +80,31 @@ class FetchSend:
                         status="Ended"
                      
                     if arr_resolved:
-                        self.resolved_array['resolved'].append({'fixtureId':row['ItemID'],'status':'Ended','resolved':arr_resolved})
+                        self.resolved_array['resolved'].append({'fixtureId':row['ItemId'],'status':'Ended','resolved':arr_resolved})
                         
                     match_data['scoreboard'] = generate_football_scoreboard(statistics,row['event_seconds'],row['event_period'],row['event_fetched_timestamp'])         
 
                     self.fixtures_array['fixtures'].append(match_data)
 
                 except Exception as e:
-                    self.logg.error(f"In generate_live_fixtures. Error {e}; Fixture id: {row['ItemID']}")                
+                    self.logg.error(f"In generate_live_fixtures. Error {e}; Fixture id: {row['ItemId']}")                
                     continue
         return self.fixtures_array, self.resolved_array
     
     def fetch_and_send(self):
         res=self.redis_result.load_results_data()
+        #check if there is homeid,awayud that is empty and filter them out
         mark=self.redis_market.load_markets_data()
         for i in res:
             for j in mark:
                 """
-                checking if markets are empty list(if there are no previous markets so we save empty list in redis);if ItemID in markets bcs in previous iteration we
-                deleted ItemID so it would throw and error otherwise; regarding perf, only checking if first element of markets equals result ItemID;
+                checking if markets are empty list(if there are no previous markets so we save empty list in redis);if ItemId in markets bcs in previous iteration we
+                deleted ItemId so it would throw and error otherwise; regarding perf, only checking if first element of markets equals result ItemId;
                 """
-                if (j and "ItemID" in j[0]) and (j[0]["ItemID"] == i["ItemID"]):
+                if (j and "ItemId" in j[0]) and (j[0]["ItemId"] == i["ItemId"]):
                     i["games"]=j
                     for k in i["games"]:
-                        del k["ItemID"]
+                        del k["ItemId"]
                     break
                 else:
                     i["games"]=[]

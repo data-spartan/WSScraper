@@ -79,7 +79,15 @@ class RedisHash:
             for key in self.__redis.keys():
                 pipe.get(key)
             result=pipe.execute()
-        result=_list(map(_loads,result)) if result else _list()
+        
+        if result:
+            result=_list(map(_loads,result))  
+            result[:]=[i for i in result if i['home_id'] and i['away_id'] ] 
+            #in case some fixture teams dont have asigned ids filter them out
+        else:
+            result=_list()
+        # result=_list(map(_loads,result)) if result else _list()
+
         return result
 
     def load_markets_data(self) -> list:
@@ -89,9 +97,16 @@ class RedisHash:
         with self.__redis.pipeline() as pipe:
             for key in self.__redis.keys():
                 pipe.get(key)
-            result=pipe.execute()
-        result=_list(map(_loads,result))
-        return result if result else _list()
+            markets=pipe.execute()
+        if markets:
+            markets=_list(map(_loads,markets))  
+            markets[:]=[i for i in markets if i] 
+            #in case some fixtures doesnt have markets at the moment, need to filter them out
+            #bcs it some sort of bug on feed source
+        else:
+            markets=_list()
+        
+        return markets
 
     def save_missing_keys(self,data):
         with self.__redis.pipeline() as pipe:
