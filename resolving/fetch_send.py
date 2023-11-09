@@ -53,7 +53,7 @@ class FetchSend:
                         'competitor2': row['away_name'],
                         'competitor2Id': row['away_id'],
                         # 'status': 'In Progress',
-                        'sentTime':datetime.now(),
+                        'sentTime':str(datetime.now()),
                         'games': row['games'] if row["games"] else []
                     }
 
