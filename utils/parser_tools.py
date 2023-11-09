@@ -2,6 +2,7 @@ from time import time
 from typing import Dict, List,AnyStr
 import pandas as pd
 import json
+import uuid
 from dataclasses import dataclass,field
 from os import getenv
 from dotenv import load_dotenv
@@ -23,7 +24,7 @@ class Parsers:
         Parsing and formatting match info data;
         e.g. score, tournament, stats ...;
         """
-        formatted_data = {"ItemID": 0, "TournamentId": 0, "TournamentName": 0, "country_id": 0, "country_name": 0,
+        formatted_data = {"ItemId": 0, "TournamentId": 0, "TournamentName": 0, "country_id": 0, "country_name": 0,
                           "sport_id": 0, "sport": 0, "home_id": 0, "away_id": 0,"home_name": 0, "away_name": 0, "event_score": 0, "old_score":0,
                           "event_seconds": 0, "event_start_time": 0, "event_fetched_timestamp": 0, "event_period": 0,"stats":{
                           "goal_kick": 0, "corner":0, "foul":0,"yellow_card": 0, "red_card":0,'free_kick':0,"injuries":0, "substitutions":0}}
@@ -59,8 +60,17 @@ class Parsers:
                             formatted_data["event_period"] = games[l]["info"]["current_game_state"]
                         else:
                             continue
-                        formatted_data["ItemID"] = _int(games[l]["id"])
-                        formatted_data["event_start_time"] = _int(games[l]["start_ts"])
+                        formatted_data["ItemId"] = _int(games[l]["id"])
+                        
+                        if "start_ts" in games[l]:
+                            formatted_data["event_start_time"] = _int(games[l]["start_ts"])
+                        else:
+                            old_start_time = list(filter(lambda x: x["ItemId"]==formatted_data["ItemId"], old_result))
+                            start_time=old_start_time[0]["event_start_time"] if old_start_time else None
+                            formatted_data["event_start_time"] = start_time
+                            
+
+                        #sometimes when match is finished there is no start time proeprty in feed
                         formatted_data["home_name"] = games[l]["team1_name"]
                         formatted_data["away_name"] = games[l]["team2_name"]
 
@@ -85,7 +95,7 @@ class Parsers:
                             elif formatted_data["event_period"] == "finished":
                                 formatted_data["event_period"] = "Ended"
                                 formatted_data["event_seconds"] = "Ended"
-                                print(formatted_data["ItemID"],"Ended")
+                                print(formatted_data["ItemId"],"Ended")
                                 for scores in games[l]["stats"]:
                                     """
                                     excluding set3 bcs game cant be finished in overtime1(extra-time) period
@@ -128,12 +138,12 @@ class Parsers:
         if old_result:
             """
             adding old_score to the newly arrived results;if first time arrived data then add event_score to old_score;
-            else cond in case new arrived data have no corensponing itemid in redis, we need to assign to it some value(event_score) to old_score in order
+            else cond in case new arrived data have no corensponing ItemId in redis, we need to assign to it some value(event_score) to old_score in order
             to prevent old_score to remain 0 and cause errors with resolving. 
             """
             for i in queue:
                 for j in old_result:
-                    if j["ItemID"] == i["ItemID"]:
+                    if j["ItemId"] == i["ItemId"]:
                         i["old_score"]=j["event_score"]
                         break
                     else:
@@ -149,7 +159,7 @@ class Parsers:
         e.g. games, quotes...;
         """
 
-        formatted_data = {"OddsTypeName": 0, "quote": 0, "sourceGameId": 0, "ItemID": 0, "locked": 0,
+        formatted_data = {"OddsTypeName": 0, "quote": 0, "sourceGameId": 0, "ItemId": 0, "locked": 0,
                           "type": 0}##deleted timestamp, discus if necessary
         queue = list()
         _append = queue.append
@@ -160,8 +170,8 @@ class Parsers:
             sport_id=raw_data[i]["id"]
             game = raw_data[i]["game"]
             for j in game:
-                formatted_data["ItemID"] = _int(game[j]["id"])
-                _id = formatted_data["ItemID"]
+                formatted_data["ItemId"] = _int(game[j]["id"])
+                _id = formatted_data["ItemId"]
                 list_raw_data = {_id: _list()}
                 if game[j]["market"]:
                     formatted_data["locked"] = False
@@ -202,7 +212,7 @@ class Parsers:
                     so we use previous non blocked entry from redis but with varibale "locked"=true to send on COU. 
                     """
 
-                    unpacked_old_markets=[j for i in old_dict for j in i if j["ItemID"]==_id]
+                    unpacked_old_markets=[j for i in old_dict for j in i if j["ItemId"]==_id]
                     for i in unpacked_old_markets:
                         i["locked"]=True
                     list_raw_data = {_id: unpacked_old_markets}
@@ -210,60 +220,26 @@ class Parsers:
 
         return queue
 
-    def fill_missing_data_keys(self, data: List[Dict],random_ids_list,miss_keys_redis) -> List[Dict]:
-        """
-        Fills missing data keys values using rotating pool of random list of nums that are unique and persistant for every team;
-        teams ids are saved in redis as well as in json file as backup if redis go down;
-        e.g missing keys home_id,away_id...;
-        """
-        _int=int
-        load_from_redis=miss_keys_redis.load_missing_keys()
-        if load_from_redis:
-            existing_teams=[i["name"] for i in load_from_redis]
-        else:
-            existing_teams=[]
+    def fill_missing_data_keys(self, data,existing_teams):
+        #feed doesnt have team ids, i needed to generate them and persist them in redis to maintain data integrity
+        new = {}
+        for fixt in data:        
+            if not existing_teams.get(fixt['home_name']):#if in redis id for specific team doesnt exist generate id
+                hash1=uuid.uuid1().__str__()
+                new.update({fixt['home_name']:hash1})
+                fixt['home_id']=hash1
+            else:
+                home_id=existing_teams.get(fixt['home_name'])
+                fixt['home_id']=home_id
+            if not existing_teams.get(fixt['away_name']):
+                hash2=uuid.uuid1().__str__()
+                new.update({fixt['away_name']:hash2})
+                fixt['away_id']=hash2
+            else:
+                away_id=existing_teams.get(fixt['away_name'])
+                fixt['away_id']=away_id
 
-        arrived_team_names=list()
-        for i in data:
-            arrived_team_names.extend([i["home_name"],i["away_name"]])
-        """
-        unmapped_teams are teams that are not in redis but are only in arrived data
-        """
-        # existing_teams=[i["name"] for i in load_from_redis]
-        unmapped_teams=list(set(arrived_team_names) - set(existing_teams))
-        if not unmapped_teams:
-            for i in data:
-                for j in load_from_redis:
-                    if j["name"] == i["home_name"]:
-                        i["home_id"]=j["id"]
-                    elif j["name"]== i["away_name"]:
-                        i["away_id"]=j["id"]
-        else:
-            len_unmapped_teams=len(unmapped_teams)
-            """
-            to prevent duplicates teams ids in every else condition we pop out used ids and remained ids we write to csv file ids_random.csv.
-            Then we make pairs from unmapped_tams and popped ids and proceed to populate missing data. 
-            """
-            ids=[random_ids_list.pop(-1) for i in range(len_unmapped_teams)]
-            pd.DataFrame(random_ids_list).to_csv(self.ids_random_path,index=False,header=False)
-            pairs=list(zip(unmapped_teams,ids))
-            id_name=[{"name":i[0], "id":i[1]} for i in pairs]
-
-            """
-            adding a backup as file-like object if redis goes down
-            discus with others if its necessary this step
-            """
-            with open(self.miss_teams, 'w') as outfile:
-                json.dump(load_from_redis, outfile)
-            miss_keys_redis.save_missing_keys(id_name)
-
-            for i in data:
-                for j in id_name:
-                    if j["name"] == i["home_name"]:
-                        i["home_id"]=j["id"]
-                        break
-                    elif j["name"]== i["away_name"]:
-                        i["away_id"]=j["id"]
-                        break
-
-        return data
+            existing_teams.update(new)
+        return data, new
+            
+# 23af2c34-7e73-11ee-9917-5917db2214b1

@@ -15,12 +15,15 @@ class RedisHash:
     db_id: int
     key_field: str = None
     list_name: str = None
+    hash_name:str=None
     expiry_time: int = 100
     """
     Setting None as default value makes init attributes optional
     """
     def __post_init__(self):
-        self.__redis: redis.client.Redis = redis.Redis(db=self.db_id)
+        self.connection_pool_=redis.ConnectionPool(max_connections=30,db=self.db_id, decode_responses=True)
+        self.__redis: redis.client.Redis = redis.Redis(password=None,db=self.db_id,connection_pool=self.connection_pool_)
+        # self.__redis: redis.client.Redis = redis.Redis(db=self.db_id)
 
     def flush(self):
         self.__redis.flushdb()
@@ -34,6 +37,7 @@ class RedisHash:
         current matches. We then bulk write into the redis from which we use inserted data for data change comparsion data.
         """
         with self.__redis.pipeline() as pipe:
+            # print(len(formatted), "IN RES")
             for i in formatted:
                 pipe.set(i[self.key_field], _dumps(i))
                 pipe.expire(i[self.key_field], self.expiry_time)
@@ -45,6 +49,7 @@ class RedisHash:
         current markets. We then bulk write into the redis from which we use inserted data for data change comparsion data.
         """
         with self.__redis.pipeline() as pipe:
+            # print(len(formatted), "IN MARKETS")
             for i in formatted:
                 pipe.set(_list(_key(i))[0], _dumps(i[_list(_key(i))[0]]))
                 pipe.expire(_list(_key(i))[0], self.expiry_time)
@@ -76,7 +81,9 @@ class RedisHash:
             for key in self.__redis.keys():
                 pipe.get(key)
             result=pipe.execute()
+           
         result=_list(map(_loads,result)) if result else _list()
+        
         return result
 
     def load_markets_data(self) -> list:
@@ -86,9 +93,10 @@ class RedisHash:
         with self.__redis.pipeline() as pipe:
             for key in self.__redis.keys():
                 pipe.get(key)
-            result=pipe.execute()
-        result=_list(map(_loads,result))
-        return result if result else _list()
+            markets=pipe.execute()
+        
+        markets=_list(map(_loads,markets))  if markets else _list()
+        return markets
 
     def save_missing_keys(self,data):
         with self.__redis.pipeline() as pipe:
@@ -99,3 +107,10 @@ class RedisHash:
     def load_missing_keys(self):
         res=self.__redis.lrange(self.list_name,0,-1)
         return _list(map(_loads,res)) if res else _list()
+
+    def write_missing_ids(self,hash:str,object):
+        if object:
+            self.__redis.hmset(hash,object)
+
+    def load_miss(self,hash:str,fields:list=None):
+        return self.__redis.hgetall(hash)

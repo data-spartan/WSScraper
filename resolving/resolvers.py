@@ -77,7 +77,7 @@ class ResolverAdapter:
                 competitor_2_period_1_old_result =list(map(int,re.split(pattern=r"[,:-]", string=row["old_score"])))
                 competitor_1_period_2_old_result, competitor_2_period_2_old_result = 0, 0
         except Exception as e:
-            print(row["ItemID"],row["old_score"],row["event_period"])
+            print(row["ItemId"],row["old_score"],row["event_period"])
             raise e
 
         res = FootballResolver(
