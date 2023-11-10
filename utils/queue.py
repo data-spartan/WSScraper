@@ -34,8 +34,9 @@ class Queue():
 class ResolvingQueue(Queue):
     def __post_init__(self):
         self._list=list
-    def append_resolved_games(self, game_type:str,status:str):
+    def append_resolved_games(self, game_type:str,status:str,id:str=None):
         game_resolved = {
+            "id":id,
             "type": game_type,
             "status": status,
         }

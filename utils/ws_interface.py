@@ -21,7 +21,8 @@ class WebsocketClient:
     parsers: Any = field(default_factory=Parsers,repr=False)
     
     def __post_init__(self):
-        self.existing_teams=self.miss_keys_redis.load_miss('missing_teams_id')
+        self.existing_teams=self.miss_keys_redis.load_miss('missing_teams_ids')
+        self.existing_markets=self.miss_keys_redis.load_miss('missing_markets_ids')
         self.fh, self.logg = logging_func("ws", getenv("main_logs"))
         self.pill2kill = threading.Event() #---ensures if error happens that potential hanging thread is closed
         self.conn_closed_count=0
@@ -69,10 +70,9 @@ class WebsocketClient:
                 try:
                     old_result = self.result_redis.load_results_data()
                     result_info = self.parsers.match_info_parser(raw_data,old_result)
-                    
-                    fixtures_info,found_teams = self.parsers.fill_missing_data_keys(result_info,self.existing_teams)
+                    fixtures_info,found_teams = self.parsers.fill_missing_teams_ids(result_info,self.existing_teams)
                     if found_teams:
-                        self.miss_keys_redis.write_missing_ids('miss_teams',found_teams)
+                        self.miss_keys_redis.write_missing_ids('missing_teams_ids',found_teams)
                 
                     self.result_redis.save_results(fixtures_info)
                 except Exception as e:
@@ -80,7 +80,13 @@ class WebsocketClient:
             else:
                 old_markets=self.markets_redis.load_markets_data()
                 markets_info=self.parsers.markets_parser(raw_data,old_markets)
-                self.markets_redis.save_markets(markets_info)
+                mapped_markets_info,found_markets = self.parsers.fill_missing_markets_ids(markets_info,self.existing_markets)
+                #found_market are new found markets not in cache, mapped_markets are markets with populated marketid
+                if found_markets:
+                    
+                    self.miss_keys_redis.write_missing_ids('missing_markets_ids',found_markets)
+
+                self.markets_redis.save_markets(mapped_markets_info)
 
     
     def on_error(self, ws: websocket.WebSocketApp, error:websocket.WebSocketException):

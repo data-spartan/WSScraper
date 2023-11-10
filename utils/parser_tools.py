@@ -16,8 +16,6 @@ class Parsers:
     miss_teams: AnyStr = field(default_factory=lambda: getenv("missing_team_names"),repr=False)
     ids_random_path: AnyStr = field(default_factory=lambda: getenv("ids_random_path"),repr=False)
 
-    def __post_init__(self):
-        self.hashFunc=hashlib.md5
 
     def match_info_parser(self,raw_data: Dict, old_result: List[Dict]) -> List[Dict]:
         """
@@ -197,7 +195,7 @@ class Parsers:
                             else:
                                 formatted_data["type"] = f'{formatted_data["OddsTypeName"]} {base}|{sub_type.strip()}'
                             # print(f"{k}{sub_type.strip()}")
-                            formatted_data["sourceGameId"] = f"{k}{sub_type.strip()}"
+                            formatted_data["sourceGameId"] = 0 #f"{k}{sub_type.strip()}"
                             list_raw_data[_id].append(formatted_data)
                             """
                             after each iteration we need to create new dict object to ensure that every market has
@@ -220,26 +218,41 @@ class Parsers:
 
         return queue
 
-    def fill_missing_data_keys(self, data,existing_teams):
+    def fill_missing_teams_ids(self, data,existing_teams):
         #feed doesnt have team ids, i needed to generate them and persist them in redis to maintain data integrity
         new = {}
         for fixt in data:        
-            if not existing_teams.get(fixt['home_name']):#if in redis id for specific team doesnt exist generate id
-                hash1=uuid.uuid1().__str__()
+            home_id=existing_teams.get(fixt['home_name'])#if in redis id for specific team doesnt exist generate id
+            away_id=existing_teams.get(fixt['away_name'])
+            if not home_id:
+                hash1=uuid.uuid4().__str__()
                 new.update({fixt['home_name']:hash1})
                 fixt['home_id']=hash1
             else:
-                home_id=existing_teams.get(fixt['home_name'])
                 fixt['home_id']=home_id
-            if not existing_teams.get(fixt['away_name']):
-                hash2=uuid.uuid1().__str__()
+            if not away_id:
+                hash2=uuid.uuid4().__str__()
                 new.update({fixt['away_name']:hash2})
                 fixt['away_id']=hash2
             else:
-                away_id=existing_teams.get(fixt['away_name'])
                 fixt['away_id']=away_id
 
             existing_teams.update(new)
         return data, new
             
-# 23af2c34-7e73-11ee-9917-5917db2214b1
+    def fill_missing_markets_ids(self, data, existing_markets):
+        #feed doesnt have team ids, i needed to generate them and persist them in redis to maintain data integrity
+        new = {}
+        for markets in data:        
+            key=list(markets.keys())[0] #fixtureId
+            for market in markets[key]:
+                marketId=existing_markets.get(market['type'])
+                if not marketId:#if in redis id for specific team doesnt exist generate id
+                    hash_=uuid.uuid4().__str__()
+                    new.update({market['type']:hash_})
+                    market['sourceGameId']=hash_
+                else:
+                    market['sourceGameId']=marketId
+
+        existing_markets.update(new)
+        return data, new

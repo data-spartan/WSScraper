@@ -58,4 +58,3 @@ class Producer_:
             self.producer_instance.poll(1)
             self.producer_instance.produce(self.topic, value=self.serializer_(fixtures),callback=self.acked)
             self.producer_instance.flush()
-# [{'source': 'instant-bet', 'type': 'live', 'fixtureId': 23423279, 'competitionString': 'Football|Cameroon|MTN Elite Two', 'region': 'Cameroon', 'regionId': 460001, 'sport': 'Football', 'sportId': 1, 'competition': 'MTN Elite Two', 'competitionId': 15490, 'fixtureTimestamp': 1699452000, 'competitor1': 'RC Bafoussam', 'competitor1Id': 0, 'competitor2': 'Yafoot FC', 'competitor2Id': 97338971, 'sentTime': datetime.datetime(2023, 11, 8, 15, 37, 23, 380993), 'games': [{'OddsTypeName': 'Match Result', 'quote': 1.08, 'sourceGameId': '1369033924P1', 'locked': False, 'type': 'Match Result|P1'}, {'OddsTypeName': 'Match Result', 'quote': 11.0, 'sourceGameId': '1369033924X', 'locked': False, 'type': 'Match Result|X'}]]
