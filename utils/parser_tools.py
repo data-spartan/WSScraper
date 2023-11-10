@@ -222,19 +222,19 @@ class Parsers:
         #feed doesnt have team ids, i needed to generate them and persist them in redis to maintain data integrity
         new = {}
         for fixt in data:        
-            if not existing_teams.get(fixt['home_name']):#if in redis id for specific team doesnt exist generate id
-                hash1=uuid.uuid1().__str__()
+            home_id=existing_teams.get(fixt['home_name'])#if in redis id for specific team doesnt exist generate id
+            away_id=existing_teams.get(fixt['away_name'])
+            if not home_id:
+                hash1=uuid.uuid4().__str__()
                 new.update({fixt['home_name']:hash1})
                 fixt['home_id']=hash1
             else:
-                home_id=existing_teams.get(fixt['home_name'])
                 fixt['home_id']=home_id
-            if not existing_teams.get(fixt['away_name']):
-                hash2=uuid.uuid1().__str__()
+            if not away_id:
+                hash2=uuid.uuid4().__str__()
                 new.update({fixt['away_name']:hash2})
                 fixt['away_id']=hash2
             else:
-                away_id=existing_teams.get(fixt['away_name'])
                 fixt['away_id']=away_id
 
             existing_teams.update(new)
@@ -246,13 +246,13 @@ class Parsers:
         for markets in data:        
             key=list(markets.keys())[0] #fixtureId
             for market in markets[key]:
-                if not existing_markets.get(market['type']):#if in redis id for specific team doesnt exist generate id
+                marketId=existing_markets.get(market['type'])
+                if not marketId:#if in redis id for specific team doesnt exist generate id
                     hash_=uuid.uuid4().__str__()
                     new.update({market['type']:hash_})
                     market['sourceGameId']=hash_
                 else:
-                    market_id=existing_markets.get(market['type'])
-                    market['sourceGameId']=market_id
+                    market['sourceGameId']=marketId
 
         existing_markets.update(new)
         return data, new

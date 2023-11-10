@@ -17,6 +17,7 @@ from datetime import datetime
 class FetchSend:
     redis_result: redis_service = field(default=None)
     redis_market: redis_service = field(default=None)
+    redis_mapped_markets_ids: redis_service = field(default=None)
 
     # resolved_queue: ResolvingQueue = field(default_factory=ResolvingQueue, repr=False)
     
@@ -27,12 +28,8 @@ class FetchSend:
         self.fixtures_array={'fixtures':[]}
         self.resolved_array= {'resolved':[]}
 
-    def generate_live_fixtures(self,data: List[Dict],results_hash,markets_hash) -> List[Dict]:
-        """
-        form data for COU sending
-        """
-        # markets_queue=list()
-        # _append=markets_queue.append
+    def generate_live_fixtures(self,data: List[Dict]) -> List[Dict]:
+        mapped_markets_ids=self.redis_mapped_markets_ids.load_miss('missing_markets_ids') #already mapped markets ids
         for row in data:
             if row:
                 try:
@@ -74,14 +71,7 @@ class FetchSend:
                                 "status": "lost"
                                 }
                                 ]
-                    if arr_resolved:
-                        for i in match_data["games"]:
-                            for j in arr_resolved:
-                                if i['type'] == j['type']:
-                                    j["id"] =i["sourceGameId"]
-                                    break
-
-                        print(arr_resolved[0])
+                                
 
                     if row['event_period'] != "Ended":
                         status="In progress"
@@ -89,6 +79,10 @@ class FetchSend:
                         status="Ended"
                      
                     if arr_resolved:
+                        for i in arr_resolved:#mapp resolved games
+                            if marketId:=(mapped_markets_ids.get(i['type'])):
+                                i['id']=marketId
+                        arr_resolved[:]=(i for i in arr_resolved if i['id']) #filterout resolved games with none id
                         self.resolved_array['resolved'].append({'fixtureId':row['ItemId'],'status':'Ended','resolved':arr_resolved})
                         
                     match_data['scoreboard'] = generate_football_scoreboard(statistics,row['event_seconds'],row['event_period'],row['event_fetched_timestamp'])         
@@ -102,7 +96,6 @@ class FetchSend:
     
     def fetch_and_send(self):
         res=self.redis_result.load_results_data()
-        #check if there is homeid,awayid that is empty and filter them out
         mark=self.redis_market.load_markets_data()
         for i in res:
             for j in mark:
@@ -118,6 +111,7 @@ class FetchSend:
                 else:
                     i["games"]=[]
         res[:] = (i for i in res if i['home_id'] and i['away_id'] and i["games"])
-        self.generate_live_fixtures(res,self.redis_result,self.redis_market)
+        #check if there is homeid,awayid, games that is empty and filter them out
+        self.generate_live_fixtures(res)
   
   
