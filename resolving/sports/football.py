@@ -64,9 +64,9 @@ class FootballResolver:
         sum_half = self.competitor_1_period_1_result + self.competitor_2_period_1_result + 1
         if sum_==1:
             sufix='st'
-        if sum_==2:
+        elif sum_==2:
             sufix='nd'
-        if sum_==3:
+        elif sum_==3:
             sufix='rd'
         else:
             sufix='th'

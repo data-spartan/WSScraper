@@ -173,11 +173,9 @@ class Parsers:
                 list_raw_data = {_id: _list()}
                 if game[j]["market"]:
                     formatted_data["locked"] = False
-                    # formatted_data["timestamp"] = _int(time())
                     raw_data = game[j]["market"]
                     for k in raw_data:
                         base = raw_data[k]["base"] if "base" in raw_data[k] else ""
-                        # formatted_data["sourceGameId"] = _int(k)
                         formatted_data["OddsTypeName"] = raw_data[k]["name"]
                         events = raw_data[k]["event"]
                         for l in events:
