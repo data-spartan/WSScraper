@@ -52,7 +52,6 @@ class FetchSend:
                         'competitor1Id': row['home_id'],
                         'competitor2': row['away_name'],
                         'competitor2Id': row['away_id'],
-                        # 'status': 'In Progress',
                         'sentTime':str(datetime.now()),
                         'games': row['games'] if row["games"] else []
                     }
@@ -65,15 +64,25 @@ class FetchSend:
                     if row['sport'] in ['Soccer', 'Football']:
                         arr_resolved, statistics = self.resolver.resolve_football(row)
                         arr_resolved=[{
+                                "id":None,
                                 "type": "Both Teams To Score|Yes",
                                 "status": "won"
                                 },
                                 {
+                                    "id":None,
                                 "type": "Both Teams To Score|No",
                                 "status": "lost"
                                 }
                                 ]
-                    
+                    if arr_resolved:
+                        for i in match_data["games"]:
+                            for j in arr_resolved:
+                                if i['type'] == j['type']:
+                                    j["id"] =i["sourceGameId"]
+                                    break
+
+                        print(arr_resolved[0])
+
                     if row['event_period'] != "Ended":
                         status="In progress"
                     else:
