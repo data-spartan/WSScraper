@@ -16,9 +16,9 @@ if __name__ == "__main__":
     logg = logging_func("sender", getenv("sender_logs"))[1]
     logg.info("SENDER started...")
 
-    results_hash = RedisHash(db_id=getenv("results_redis"), key_field='ItemId')
-    markets_hash = RedisHash(db_id=getenv("markets_redis"), key_field='ItemId')
-    missing_ids_hash = RedisHash(db_id=getenv("missing_ids_redis"),expiry_time=66000)
+    results_hash = RedisHash(port=getenv("REDIS_PORT"),db_id=getenv("results_redis"), key_field='ItemId')
+    markets_hash = RedisHash(port=getenv("REDIS_PORT"),db_id=getenv("markets_redis"), key_field='ItemId')
+    missing_ids_hash = RedisHash(port=getenv("REDIS_PORT"),db_id=getenv("missing_ids_redis"),expiry_time=66000)
 
     fetchsend = FetchSend(results_hash,markets_hash,missing_ids_hash)
     producer_instance=Producer_(prod_conf,getenv('kafka_fixt_topic'),getenv('kafka_resolv_topic'))
@@ -38,7 +38,7 @@ if __name__ == "__main__":
             # [(results_hash.delete_key(i['fixtureId']),markets_hash.delete_key(i['fixtureId'])) for i in fetchsend.resolved_array["resolved"] if i['status'] == "Ended"]
             fetchsend.fixtures_array['fixtures'].clear()
             fetchsend.resolved_array['resolved'].clear()
-            sleep(10)
+            sleep(3)
         except KeyboardInterrupt:
             error_message = {
                 'source': 'instant_bet sender',

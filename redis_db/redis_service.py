@@ -12,6 +12,7 @@ _loads=orjson.loads
 
 @dataclass
 class RedisHash:
+    port:int
     db_id: int
     key_field: str = None
     list_name: str = None
@@ -21,7 +22,7 @@ class RedisHash:
     Setting None as default value makes init attributes optional
     """
     def __post_init__(self):
-        self.connection_pool_=redis.ConnectionPool(max_connections=30,db=self.db_id, decode_responses=True)
+        self.connection_pool_=redis.ConnectionPool(port=self.port,max_connections=30,db=self.db_id, decode_responses=True)
         self.__redis: redis.client.Redis = redis.Redis(password=None,db=self.db_id,connection_pool=self.connection_pool_)
         # self.__redis: redis.client.Redis = redis.Redis(db=self.db_id)
 

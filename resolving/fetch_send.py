@@ -50,7 +50,7 @@ class FetchSend:
                         'competitor1Id': row['home_id'],
                         'competitor2': row['away_name'],
                         'competitor2Id': row['away_id'],
-                        'sentTime':str(datetime.now()),
+                        'sentTime':'2023-11-13T11:59:38.274+00:00',#datetime.now().isoformat(),
                         'games':[]
                     }
                     row['games'][:]=(i for i in row['games'] if i['type'] in allowed_games) #send only allowd games bcs resolved games and available games must be in sync
@@ -64,7 +64,7 @@ class FetchSend:
                         arr_resolved, statistics = self.resolver.resolve_football(row)
                         arr_resolved=[{
                                 "id":None,
-                                "type": "Both Teams To Score|Yes",
+                                "type": 'Correct Score|6-0',
                                 "status": "won"
                                 },
                                 {
