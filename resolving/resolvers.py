@@ -9,7 +9,7 @@ from logger.log_func import *
 from utils.queue import Queue, ResolvingQueue
 @dataclass
 class ResolverAdapter:
-    load_dotenv(find_dotenv(".env.production"))
+    load_dotenv(find_dotenv(".env"))
 
     results_hash: RedisHash = field(default=None, repr=False)
     markets_hash: RedisHash = field(default=None, repr=False)
@@ -20,7 +20,7 @@ class ResolverAdapter:
         self.re_split =re.split
         self.re_colon_dash = re.compile(r"[:-]")
         self.re_colon = re.compile(r"[:]")
-        self.logg = logging_func("resolver_adapter", getenv("sender_logs"))[1]
+        self.logg = logging_func("resolver_adapter", getenv("SENDER_LOGS"))[1]
 
 
     def resolve_football(self,row):

@@ -6,7 +6,7 @@ idea behind this is to send
 import json
 from os import getenv
 
-from kafka import KafkaProducer
+from confluent_kafka import Producer
 from dotenv import load_dotenv
 
 load_dotenv(".env")

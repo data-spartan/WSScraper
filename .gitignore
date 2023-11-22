@@ -1,7 +1,6 @@
 data
 *.json
 *.csv
-.env.production
 .env
 .venv
 .idea

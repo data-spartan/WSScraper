@@ -24,7 +24,7 @@ class FetchSend:
     
     def __post_init__(self):
         self.resolver=ResolverAdapter(self.redis_result,self.redis_market)
-        self.logg = logging_func("sending-data", getenv("sender_logs"))[1]  # get only logger object
+        self.logg = logging_func("sending-data", getenv("SENDER_LOGS"))[1]  # get only logger object
         # self.sport_container={"sport":{"Football":[],"Basketball":[]},"source":"instant_bet"}
         self.fixtures_array={'fixtures':[]}
         self.resolved_array= {'resolved':[]}
