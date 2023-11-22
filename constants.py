@@ -3,10 +3,10 @@ import base64
 from os import getenv
 from dotenv import load_dotenv
 
-load_dotenv(".env")
+# load_dotenv(".env")
 
-scrapoxy_admin_pass_base64 = base64.b64encode(
-getenv("adm_pass_scrapoxy").encode('ascii'))
+# scrapoxy_admin_pass_base64 = base64.b64encode(
+# getenv("adm_pass_scrapoxy").encode('ascii'))
 
 sports={'Football': '1',
  
@@ -45,7 +45,7 @@ sport_translations = {
 
 # random_ids_list=pd.read_csv(getenv("ids_random_path"),header=None)[0].to_list()
 
-prod_conf = {'bootstrap.servers': "localhost:9092",
+prod_conf = {'bootstrap.servers': "",
             'client.id': "live_feed",
             "message.max.bytes": 22285880,
             # "queue.buffering.max.messages":10,

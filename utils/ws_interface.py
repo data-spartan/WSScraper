@@ -22,7 +22,7 @@ class WebsocketClient:
     def __post_init__(self):
         self.existing_teams=self.miss_keys_redis.load_miss('missing_teams_ids')
         self.existing_markets=self.miss_keys_redis.load_miss('missing_markets_ids')
-        self.fh, self.logg = logging_func("ws", getenv("main_logs"))
+        self.fh, self.logg = logging_func("ws", getenv("MAIN_LOGS"))
         self.pill2kill = threading.Event() #---ensures if error happens that potential hanging thread is closed
         self.conn_closed_count=0
         self.error_count=0

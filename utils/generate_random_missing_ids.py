@@ -6,7 +6,7 @@ from pathlib import Path
 from logger.log_func import *
 
 load_dotenv(".env")
-logg=logging_func("random-ids-generator",getenv("sender_logs"))[1] #get only logger object
+logg=logging_func("random-ids-generator",getenv("SENDER_LOGS"))[1] #get only logger object
 
 def generate_miss_ids_first_time():
 	"""
