@@ -1,26 +1,37 @@
 version: "3.7"
 
 services:
-  neofeed-3-live:
+  ws-scraper-live:
     build:
       context: ./
       dockerfile: Dockerfile
-    container_name: neofeed-3-live
+    container_name: ws-scraper-live
     environment:
       - SWITCH=live
     network_mode: host
     volumes:
       - ./logs:/logs
-      - ./raw_missing:/raw_missing
 
-  neofeed-3-sender:
+  ws-scraper-sender:
     build:
       context: ./
       dockerfile: Dockerfile
-    container_name: neofeed-3-sender
+    container_name: ws-scraper-sender
     environment:
       - SWITCH=sender
     network_mode: host
     volumes:
       - ./logs:/logs
 
+  redis-scraper:
+    image: redis:latest
+    container_name: redis-container
+    restart: unless-stopped
+    ports:
+      - ${REDIS_PORT}:6379
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:
+    driver: local

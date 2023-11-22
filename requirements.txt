@@ -3,11 +3,6 @@ rel~=0.4.7
 pandas~=1.4.2
 hiredis~=2.0.0
 redis~=4.3.4
-aiohttp==3.8.1
-uvloop==0.16.0
-retrying-async==2.0.0
-kafka-python==2.0.2
-async-timeout==4.0.2
 python-dotenv==0.21.0
 orjson==3.8.0
 confluent-kafka==2.0.2

@@ -3,7 +3,7 @@ data
 *.csv
 .env.production
 .env
-venv
+.venv
 .idea
 errors
 logs/*

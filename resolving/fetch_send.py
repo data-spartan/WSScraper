@@ -12,6 +12,7 @@ from logger.log_func import logging_func
 from resolving.resolvers import ResolverAdapter
 from utils.scoreboard_generators import generate_football_scoreboard
 from datetime import datetime
+from resolving.allowed_resolving_games import allowed_games
 
 @dataclass
 class FetchSend:
@@ -49,10 +50,11 @@ class FetchSend:
                         'competitor1Id': row['home_id'],
                         'competitor2': row['away_name'],
                         'competitor2Id': row['away_id'],
-                        'sentTime':str(datetime.now()),
-                        'games': row['games'] if row["games"] else []
+                        'sentTime':'2023-11-13T11:59:38.274+00:00',#datetime.now().isoformat(),
+                        'games':[]
                     }
-
+                    row['games'][:]=(i for i in row['games'] if i['type'] in allowed_games) #send only allowd games bcs resolved games and available games must be in sync
+                    match_data['games']=row['games']
                     if row['event_period'] == "timeout":
                         if int(time()) - int(row['event_fetched_timestamp']) > 40:
                             row['event_period'] = "Ended"
@@ -62,7 +64,7 @@ class FetchSend:
                         arr_resolved, statistics = self.resolver.resolve_football(row)
                         arr_resolved=[{
                                 "id":None,
-                                "type": "Both Teams To Score|Yes",
+                                "type": 'Correct Score|6-0',
                                 "status": "won"
                                 },
                                 {
@@ -78,6 +80,7 @@ class FetchSend:
                     else:
                         status="Ended"
                      
+                    
                     if arr_resolved:
                         for i in arr_resolved:#mapp resolved games
                             if marketId:=(mapped_markets_ids.get(i['type'])):
@@ -92,6 +95,7 @@ class FetchSend:
                 except Exception as e:
                     self.logg.error(f"In generate_live_fixtures. Error {e}; Fixture id: {row['ItemId']}")                
                     continue
+        # self.fixtures_array['fixtures'][:]=(i for i in self.fixtures_array['fixtures'] if i['games'])
         return self.fixtures_array, self.resolved_array
     
     def fetch_and_send(self):
@@ -113,5 +117,6 @@ class FetchSend:
         res[:] = (i for i in res if i['home_id'] and i['away_id'] and i["games"])
         #check if there is homeid,awayid, games that is empty and filter them out
         self.generate_live_fixtures(res)
+        return
   
   

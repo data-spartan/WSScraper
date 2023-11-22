@@ -461,3 +461,6 @@ cython_debug/
 data/
 *.json
 
+###LOGS
+# logs
+test.*
