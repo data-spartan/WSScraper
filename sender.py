@@ -12,7 +12,7 @@ from kafka_sender.kafka_producer import Producer_
 
 
 if __name__ == "__main__":
-    load_dotenv(find_dotenv(".env.production"))
+    load_dotenv(find_dotenv(".env"))
     logg = logging_func("sender", getenv("sender_logs"))[1]
     logg.info("SENDER started...")
 

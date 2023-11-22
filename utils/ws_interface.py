@@ -17,7 +17,6 @@ class WebsocketClient:
     miss_keys_redis: List = field(default_factory=list, repr=False)
     markets_redis: List[Dict]= field(default_factory=dict, repr=False)
     result_redis: List[Dict]= field(default_factory=dict, repr=False)
-    random_ids_list: List= field(default_factory=lambda: pd.read_csv(getenv("ids_random_path"),header=None)[0].to_list(),repr=False)
     parsers: Any = field(default_factory=Parsers,repr=False)
     
     def __post_init__(self):

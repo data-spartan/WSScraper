@@ -4,8 +4,8 @@
 ### ps -ef | grep live_restart_script  to find PID
 #### kill it with: kill -9 PID_PROCESS
 
-neofeed_3_live=neofeed-3-live
-neofeed_3_sender=neofeed-3-sender
+ws-scraper-live=ws-scraper-live
+ws-scraper-sender=ws-scraper-sender
 
 main_logs=logs/main.log
 sender_logs=logs/sender.log
@@ -21,21 +21,17 @@ then
     chmod 666 $sender_logs
 fi
 
-### call func only once when rest script is called to check if random ids exist
-### ids_random.csv is bind to volume so it okay to run this func outside docker
-python3 utils/generate_random_missing_ids.py
-
 while true; do
 if [[ ! -z `docker-compose ps | grep Exit` ]]; then
 
-  if [ -z `docker ps -q --no-trunc | grep $(docker-compose ps -q $neofeed_3_live)` ]; then
-    docker-compose start $neofeed_3_live
+  if [ -z `docker ps -q --no-trunc | grep $(docker-compose ps -q $ws-scraper-live)` ]; then
+    docker-compose start $ws-scraper-live
     sleep 1
     fi
-  if [ -z `docker ps -q --no-trunc | grep $(docker-compose ps -q $neofeed_3_sender)` ]; then
-    docker-compose start $neofeed_3_sender
+  if [ -z `docker ps -q --no-trunc | grep $(docker-compose ps -q $ws-scraper-sender)` ]; then
+    docker-compose start $ws-scraper-sender
     sleep 1
     fi
   fi
-  sleep 100
+  sleep 30
 done
