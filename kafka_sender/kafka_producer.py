@@ -81,8 +81,11 @@ class Producer_:
                     self.producer_instance.produce(topic=self.resolved_topic, value=self.serializer_(i),callback=self.acked)
                 self.producer_instance.poll(0)
 
-        except BufferError as error:
+        except BufferError as bufferror:
             self.producer_instance.poll(1)
             self.producer_instance.produce(self.topic, value=self.serializer_(fixtures),callback=self.acked)
             self.producer_instance.flush()
-            self.logg.warning(f"Flushed messages due to: {error}")
+            self.logg.warning(f"Flushed messages due to: {bufferror}")
+        except Exception as err:
+            raise err
+
