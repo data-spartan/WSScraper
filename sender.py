@@ -60,5 +60,5 @@ if __name__ == "__main__":
             }
             logg.error(f"SENDER ERROR: {e}", exc_info=True)
             send_notification(error_message)
-            raise
+            raise e
 

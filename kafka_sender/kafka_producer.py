@@ -1,8 +1,11 @@
+from os import getenv
+from dotenv import load_dotenv,find_dotenv
 import json
 import time
 from dataclasses import dataclass,field
 import orjson
 from confluent_kafka import Producer,Message
+from logger.log_func import *
 
 
 class Producer_:
@@ -12,17 +15,41 @@ class Producer_:
         self.fixtures_topic = fixt_topic
         self.resolved_topic = resolv_topic
         self.chunk_size=10
+        self.__post_init__()
         # self.partition = partition  ##left in case key hasing is not good option
+
+
+    def __post_init__(self):
+        load_dotenv(find_dotenv(".env"))
+        self.logg = logging_func("producer", getenv("SENDER_LOGS"))[1]
+
 
     def serializer_(self,payload:dict) -> bytes:
         # print(payload)
         return orjson.dumps(payload)
 
-    def acked(self,err, msg:Message):
+    def retry_produce(self, msg: Message, retry_count:int):
+        retries = 0
+        while retries < retry_count:
+            try:
+                self.logg.warning(f"Retrying to produce message, attempt {retries + 1}/{retry_count}")
+                self.producer_instance.produce(topic=msg.topic(), value=msg.value(), callback=self.acked)
+                self.producer_instance.poll(0)
+                break  # Break the loop if the produce is successful
+            except BufferError as e:
+                self.producer_instance.poll(1)
+                time.sleep(1)  # Add a delay before retrying
+                retries += 1
+
+        if retries == retry_count:
+            self.logg.error(f"Failed to produce message after {retry_count} attempts: {str(msg.topic())}")
+
+    def acked(self,err, msg:Message, retry_count=10):
         if err is not None:
-            print(f"Failed to deliver message: {str(msg)}: {str(err)}")
+            self.logg.error(f"Failed to deliver message: {str(msg)}: {str(err)}")
+            self.retry_produce(msg, retry_count)
         else:
-            print(f"Message produced: {str(msg.value)}")
+            self.logg.info(f"Message produced: {str(msg.topic())}")
 
     def partition(self,data: list, chunk_size: int) -> list:
         """
@@ -58,3 +85,4 @@ class Producer_:
             self.producer_instance.poll(1)
             self.producer_instance.produce(self.topic, value=self.serializer_(fixtures),callback=self.acked)
             self.producer_instance.flush()
+            self.logg.warning(f"Flushed messages due to: {error}")
