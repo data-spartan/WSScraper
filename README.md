@@ -1,15 +1,14 @@
-# WSScraper
+# instantbet-ws-scraper
 
-HINT: Using .gitkeep to keep logs and raw_missing dirs but to exclude files inside
+Right now instantbet-data-hub microservice contains general overview of whole BE App.
+In near future all microservice projects will have their own specific README.
 
-1. Disable redis port for any internet connection to prevent intrusion
-2. Install and configure docker
-3. Install, configure, test, run Kafka server
-4. Configure gitlab logbroker(kafka consumer) on same server
-5. Clone the project logbroker on same server
-6. Build,start logbroker docker images and containers
-7. Integrate Kafka and Slack
-8. Configure gitlab WSScraper on server
-9. Clone the project WSScraper
-10. Build,start WSScraper docker images and containers
-11. Check logs main.log and sender.log
+Microservices available at the momment:
+
+1. https://github.com/data-spartan/instantbet-ws-scraper
+2. https://github.com/data-spartan/instantbet-account
+3. https://github.com/data-spartan/instantbet-data-hub
+
+### ABOUT:
+
+- Its python websocket scraper which collects all rellevant unformatted and unstructured live sports betting data.
