@@ -33,8 +33,14 @@ services:
     restart: unless-stopped
     ports:
       - ${REDIS_PORT}:6379
+    networks:
+      - redis-scraper-network
     volumes:
       - redis_data:/data
+
+networks:
+  redis-scraper-network:
+    driver: bridge
 
 volumes:
   redis_data:

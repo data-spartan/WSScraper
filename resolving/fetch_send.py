@@ -62,17 +62,17 @@ class FetchSend:
     
                     if row['sport'] in ['Soccer', 'Football']:
                         arr_resolved, statistics = self.resolver.resolve_football(row)
-                        arr_resolved=[{
-                                "id":None,
-                                "type": 'Correct Score|6-0',
-                                "status": "won"
-                                },
-                                {
-                                    "id":None,
-                                "type": "Both Teams To Score|No",
-                                "status": "lost"
-                                }
-                                ]
+                        # arr_resolved=[{
+                        #         "id":None,
+                        #         "type": 'Correct Score|6-0',
+                        #         "status": "won"
+                        #         },
+                        #         {
+                        #             "id":None,
+                        #         "type": "Both Teams To Score|No",
+                        #         "status": "lost"
+                        #         }
+                        #         ]
                                 
 
                     if row['event_period'] != "Ended":
@@ -86,7 +86,7 @@ class FetchSend:
                             if marketId:=(mapped_markets_ids.get(i['type'])):
                                 i['id']=marketId
                         arr_resolved[:]=(i for i in arr_resolved if i['id']) #filterout resolved games with none id
-                        self.resolved_array['resolved'].append({'fixtureId':row['ItemId'],'status':'Ended','resolved':arr_resolved})
+                        self.resolved_array['resolved'].append({'fixtureId':row['ItemId'],'status':status,'resolved':arr_resolved})
                         
                     match_data['scoreboard'] = generate_football_scoreboard(statistics,row['event_seconds'],row['event_period'],row['event_fetched_timestamp'])         
 
