@@ -2,6 +2,7 @@ data
 *.json
 *.csv
 .env
+!.env.example
 .venv
 .idea
 errors
